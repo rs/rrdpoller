@@ -1,12 +1,19 @@
 use strict;
 use ExtUtils::MakeMaker;
 
+# $Id: Makefile.PL,v 1.7 2004/12/06 12:33:30 rs Exp $
+
 WriteMakefile
 (
  NAME            => 'rrdpoller',
  DISTNAME        => 'rrdpoller',
  VERSION_FROM    => 'rrdpoller',
  PERL_ARCHLIB    => undef,
+ PM              => 
+ {
+  'Threshold.pm' => '$(INST_LIB)/RRD/Threshold.pm',
+  'Query.pm'     => '$(INST_LIB)/RRD/Query.pm',
+ },
  EXE_FILES       => [qw(rrdpoller)],
  PREREQ_PM       =>
  {
