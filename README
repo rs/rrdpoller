@@ -82,9 +82,14 @@ EXAMPLES
 
 COMMON OPTIONS
   --proxy *URL*
-    I you use this option, the rrdpoller command will turn into an XML-RPC
+    If you use this option, the rrdpoller command will turn into an XML-RPC
     client and will ask send all RRD queries to a remote rrdpoller daemon
     (see rrdpollerd for more information).
+
+  --max-last *seconds*
+    If this option is specified with an integer, the test will return false
+    if the last updated row is older than X *seconds*. The exit code will be
+    2 if this test fails instead of 1 for normal tests.
 
 SUB-COMMANDS
     All sub-commands needs at least the too first arguments *filename* and
@@ -247,6 +252,8 @@ EXIT STATUS
     0   Successful test
 
     1   Performed test returned a false value
+
+    2   The max-last was reached
 
     255 An exception was thrown
 
