@@ -3,9 +3,10 @@
 name:         rrdpoller
 version:      1.0.2
 version_from: rrdpoller
-installdirs:  vendor
+installdirs:  site
 requires:
     Error:                         0.15
+    File::Temp:                    
     RRDs:                          1.000481
 
 distribution_type: module

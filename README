@@ -67,6 +67,13 @@ EXAMPLES
         same datasource of the *pop1.rrd* hasn't yet reach *40*, the command
         will return false.
 
+    rrdpoller quotient host1-mem.rrd high_mem,low_mem,+ 90% --target-ds
+    low_total,high_total,+
+        Same as former quotient example but using RPN datasource feature.
+        Here the high_mem and the low_mem datasources will be summed then
+        the low_total and the high_total too before to do the quotient
+        computation.
+
 SUB-COMMANDS
     All sub-commands needs at least the too first arguments *filename* and
     *datasource* (except for list command). Except for the get and list
@@ -74,6 +81,10 @@ SUB-COMMANDS
     rrdpoller return code to false (1) if the test fails. All sub-commands
     will print the given *datasource* value of the given *filename* on the
     standard output.
+
+    The *datasource* can be an RPN expression (see Math::RPN) as well as all
+    other datasource options. Note that the Math::RPN module have to be
+    installed in order to use this feature.
 
   list|ls *filename*
     This command list all datasources of the given file.
@@ -223,7 +234,9 @@ SUB-COMMANDS
 EXIT STATUS
     0   Successful test
 
-    1   Performed test return a false value
+    1   Performed test returned a false value
+
+    255 An exception was thrown
 
 AUTHOR
     Olivier Poitrey <rs@rhapsodyk.net>
