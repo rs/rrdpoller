@@ -22,7 +22,7 @@ build-stamp:
 	dh_testdir
 
 	# Add commands to compile the package here
-	$(PERL) Makefile.PL INSTALLDIRS=vendor
+	$(PERL) Makefile.PL INSTALLDIRS=vendor DEFAULTS QUIET
 	$(MAKE) OPTIMIZE="$(CFLAGS)"
 	
 	touch build-stamp
