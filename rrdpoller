@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 
 use strict;
-use Error;
+use Error qw(:try);
 use RRD::Query;
 use RRD::Threshold;
 
-# $Id: rrdpoller,v 1.7 2004/12/06 18:21:11 rs Exp $
+# $Id: rrdpoller,v 1.8 2004/12/07 13:06:32 rs Exp $
 $main::VERSION = "1.0.2";
 
 =pod
@@ -92,6 +92,13 @@ If the I<users> datasource of the I<pop2.rrd> file is non-zero and the
 same datasource of the I<pop1.rrd> hasn't yet reach I<40>, the command
 will return false.
 
+=item B<rrdpoller> B<quotient> host1-mem.rrd high_mem,low_mem,+ 90% B<--target-ds> low_total,high_total,+
+
+Same as former B<quotient> example but using RPN datasource
+feature. Here the high_mem and the low_mem datasources will be summed
+then the low_total and the high_total too before to do the quotient
+computation.
+
 =back
 
 =cut
@@ -127,7 +134,15 @@ if($command ne 'list' and $command ne 'ls')
 
 {
     no strict qw(refs);
-    &{$command};
+    try
+    {
+        &{$command};
+    }
+    catch Error::RRD::Feature with
+    {
+        print STDERR "You need the Math::RPN module to use RPN datasources\n";
+        exit 255;
+    };
 }
 
 =pod
@@ -140,6 +155,10 @@ B<list> commands (which doesn't perform a test), all sub-command will
 change the rrdpoller return code to false (1) if the test fails. All
 sub-commands will print the given I<datasource> value of the given
 I<filename> on the standard output.
+
+The I<datasource> can be an RPN expression (see L<Math::RPN>) as well
+as all other datasource options. Note that the Math::RPN module have
+to be installed in order to use this feature.
 
 =head2 B<list|ls> I<filename>
 
@@ -490,7 +509,11 @@ Successful test
 
 =item B<1>
 
-Performed test return a false value
+Performed test returned a false value
+
+=item B<255>
+
+An exception was thrown
 
 =back
 
