@@ -4,8 +4,9 @@ use File::Temp qw(tempdir);
 
 if(eval { require RRDs; 1 })
 {
-    plan tests => 25;
-    eval { require RRD::Threshold; };
+    plan tests => 27;
+    use_ok('RRD::Query');
+    use_ok('RRD::Threshold');
 }
 else
 {
@@ -88,7 +89,7 @@ if(RRDs::error())
 
 my $rrd = new RRD::Query($rrdfile);
 ok(defined $rrd,                                    'Test RRD::Query, creator');
-ok(eq_array($rrd->list(), [qw(test1 test2)]),       '  list() datasources');
+ok(eq_set($rrd->list(), [qw(test1 test2)]),         '  list() datasources');
 is($rrd->fetch('test1'), 1,                         '  fetch() current value');
 # can't go too far in the past because the CF function can make the value to change
 is($rrd->fetch('test2', offset => 5), 10,           '  fetch() past value');
