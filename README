@@ -4,24 +4,25 @@ NAME
 SYNOPSIS
     rrdpoller [OPTIONS] list|ls *filename*
 
-    rrdpoller [OPTIONS] get *filename* *datasource* [--offset *time*] [--cf
-    *func-name*]
+    rrdpoller [OPTIONS] get *filename* *datasource* [offset=*time*]
+    [cf=*func-name*] [and|or command...]
 
-    rrdpoller [OPTIONS] exact *filename* *datasource* *value*
+    rrdpoller [OPTIONS] exact *filename* *datasource* *value* [and|or
+    command...]
 
-    rrdpoller [OPTIONS] boundaries *filename* *datasource* [--min *number*]
-    [--max *number*]
+    rrdpoller [OPTIONS] boundaries *filename* *datasource* [min=*number*]
+    [max=*number*] [and|or command...]
 
     rrdpoller [OPTIONS] relation *filename* *datasource*
-    [*<*|*>*]*threshold*[*%*] [--target *filename*] [--compare-ds
-    *datasource*] [--offset *time*]
+    [*<*|*>*]*threshold*[*%*] [target=*filename*] [compare-ds=*datasource*]
+    [offset=*time*] [and|or command...]
 
     rrdpoller [OPTIONS] quotient *filename* *datasource*
-    [*<*|*>*]*threshold*[*%*] [--target *filename*] [--target-ds
-    *datasource*] [--offset *time*]
+    [*<*|*>*]*threshold*[*%*] [target=*filename*] [target-ds=*datasource*]
+    [offset=*time*] [and|or command...]
 
-    rrdpoller [OPTIONS] hunt *filename* *datasource* *roll* [--parent
-    *filename*] [--parent-ds *datasource*]
+    rrdpoller [OPTIONS] hunt *filename* *datasource* *roll*
+    [parent=*filename*] [parent-ds=*datasource*] [and|or command...]
 
 DESCRIPTION
     rrdpoller allows you to poll RRD files and get current value of a given
@@ -53,32 +54,51 @@ EXAMPLES
         Get the current value of the *http* datasource of the
         *host1-load.rrd* file and return false if not equal to 1.
 
-    rrdpoller boundaries host1-load.rrd 5min_avg --max 15
+    rrdpoller boundaries host1-load.rrd 5min_avg max=15
         Get the current value of the *5min_avg* datasource of the
         *host1-load.rrd* file and return false if greater than *15*.
 
-    rrdpoller relation host1-disk.rrd usage 100000 --offset 1min
+    rrdpoller relation host1-disk.rrd usage 100000 offset=1min
         Compare the current *usage* datasource value of the *host1-disk.rrd*
         file with the same datasource 1 minute ago and return false if the
         delta is greater than 100000.
 
-    rrdpoller quotient host1-mem.rrd usage 90% --target-ds total
+    rrdpoller quotient host1-mem.rrd usage 90% target-ds=total
         Compare the current *usage* datasource of the *host1-mem.rrd* file
         and divide it by the *total* datasource of the same file. The
         command returns false if the obtained percentage is greater than
         *90%*.
 
-    rrdpoller hunt pop2.rrd users 40 --target pop1.rrd
+    rrdpoller hunt pop2.rrd users 40 target=pop1.rrd
         If the *users* datasource of the *pop2.rrd* file is non-zero and the
         same datasource of the *pop1.rrd* hasn't yet reach *40*, the command
         will return false.
 
-    rrdpoller quotient host1-mem.rrd high_mem,low_mem,+ 90% --target-ds
-    low_total,high_total,+
+    rrdpoller quotient host1-mem.rrd high_mem,low_mem,+ 90%
+    target-ds=low_total,high_total,+
         Same as former quotient example but using RPN datasource feature.
         Here the high_mem and the low_mem datasources will be summed then
         the low_total and the high_total too before to do the quotient
         computation.
+
+    rrdpoller different mysql-slave.rrd insert,update,delete,+ 0 or equal
+    mysql-master.rrd insert,update,delete,+ 0
+        First test will fail if the sum of inserts, updates and deletes is
+        equal to 0. If failed, the second test will verify if the same sum
+        is also equal to 0 on the master and will finally fail if not. Thus
+        we can verify that the MySQL replication is running.
+
+COMMAND SYNTAX
+    The rrdpoller is followed by one of its sub-command and related
+    arguments (See below). Sub-commands arguments are key=*value* pair and
+    can alternatively be written as --key *value* pair for backward
+    compatibility. Since version 1.5.0, several sub-commands can be chained
+    together with special keywords "and" and "or". Each sub-commands return
+    a result, one by line in the order they have been called. When several
+    sub-commands are chained, all sub-commands are executed, even if the
+    first have failed and the second was chained with the "and" keyword. You
+    can change this behavior with the --lazy option, but don't expect to see
+    the result of sub-commands that doesn't have been executed then.
 
 COMMON OPTIONS
   --proxy *URL*
@@ -90,6 +110,13 @@ COMMON OPTIONS
     If this option is specified with an integer, the test will return false
     if the last updated row is older than X *seconds*. The exit code will be
     2 if this test fails instead of 1 for normal tests.
+
+  --lazy
+    If several sub-commands are chained with the "and" or "or" keywords,
+    don't exec all sub-command if the expression doesn't need it.
+
+  --quiet
+    Don't print sub-command results. Implies --lazy
 
 SUB-COMMANDS
     All sub-commands needs at least the too first arguments *filename* and
@@ -112,14 +139,14 @@ SUB-COMMANDS
     that will be expressed as: <last_inserted_time> - <offset>.
 
    options:
-    --offset *time*
+    offset=*time*
         Makes the get command to retrieve an earlier value. It substract the
         value of *time* to the timestamp of the last value inserted in the
         *datasource*. The *time* can be expressed in second (ie *60*) or in
         RRD time reference specification format (see "TIME REFERENCE
         SPECIFICATION" in rrdfetch).
 
-    --cf *func-name*
+    cf=*func-name*
         Default consolidation function is AVERAGE. This option allow you to
         change it to whichever you want.
 
@@ -137,10 +164,10 @@ SUB-COMMANDS
     fail.
 
    options:
-    --min *number*
+    min=*number*
         If current value is lower than *number*, the test fail
 
-    --max *number*
+    max=*number*
         If current value is greater than *number*, the test fail
 
   relation *filename* *datasource* *[<|>]threshold[%]* [OPTIONS]
@@ -161,19 +188,19 @@ SUB-COMMANDS
     are all examples of valid thresholds.
 
    options:
-    --target *filename*
+    target=*filename*
         The path of the comparison RRD *file*. This argument is optional and
         if omitted the first RRD *file* is also taken as the comparison
         target.
 
-    --target-ds *datasource*
+    target-ds=*datasource*
         The name of the comparison *datasource*. This *datasource* must
         belong to the comparison RRD file. This argument is optional and if
         omitted the first *datasource* name is also taken as the comparison
         datasource name. If the value is a number, the value is considered
         as a fix value and is taked for the comparison.
 
-    --offset *time*
+    offset=*time*
         The temporal *offset* to go back from the first value to fetch the
         comparison datasource value. Note that a data source value must
         exist in the RRD file for that exact offset. If This argument is
@@ -200,19 +227,19 @@ SUB-COMMANDS
     thresholds.
 
    options:
-    --target *filename*
+    target=*filename*
         The path of the comparison RRD *file*. This argument is optional and
         if omitted the first RRD *file* is also taken as the comparison
         target.
 
-    --target-ds *datasource*
+    target-ds=*datasource*
         The name of the comparison *datasource*. This *datasource* must
         belong to the comparison RRD file. This argument is optional and if
         omitted the first *datasource* name is also taken as the comparison
         datasource name. If the value is a number, the value is considered
         as a fix value and is taked for the comparison.
 
-    --offset *time*
+    offset=*time*
         The temporal *offset* to go back from the first value to fetch the
         comparison datasource value. Note that a data source value must
         exist in the RRD file for that exact offset. If This argument is
@@ -220,7 +247,7 @@ SUB-COMMANDS
         expressed in second (ie *60*) or in RRD time reference specification
         format (see "TIME REFERENCE SPECIFICATION" in rrdfetch).
 
-  hunt *roll* --parent <filename> --parent-ds <datasource> [OPTIONS]
+  hunt *roll* [OPTIONS]
     The hunt threshold is designed for the situation where the data source
     serves as an overflow for another data source; that is, if one data
     source (the parent) is at or near capacity, then traffic will begin to
@@ -236,12 +263,12 @@ SUB-COMMANDS
     target.
 
    options:
-    --parent *filename*
+    parent=*filename*
         The path of the comparison RRD *file*. This argument is optional and
         if omitted the first RRD *file* is also taken as the comparison
         target.
 
-    --parent-ds *datasource*
+    parent-ds=*datasource*
         The name of the comparison *datasource*. This *datasource* must
         belong to the comparison RRD file. This argument is optional and if
         omitted the first *datasource* name is also taken as the comparison
