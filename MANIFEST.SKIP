@@ -15,4 +15,13 @@
 \.old$
 ^#.*#$
 ^\.#
+\.tmp$
+^\..*\.swp$
+_to_
 
+# debian specific
+-stamp$
+^debian\/
+
+# dists
+^rrdpoller-[\d.]+\.tar\.gz$
