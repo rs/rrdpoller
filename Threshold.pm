@@ -3,7 +3,7 @@ package RRD::Threshold;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.3 2004/12/02 17:11:47 rs Exp $
+# $Id: Threshold.pm,v 1.4 2004/12/02 17:44:17 rs Exp $
 $RRD::Threshold::VERSION = 1.0.0;
 
 =pod
@@ -64,6 +64,28 @@ false.
 
 =back
 
+Throws:
+
+=over 4
+
+=item Error::Argument
+
+If min is greater than max
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::isNaN
+
+if fetched value is Not a Number
+
+=item Error::RRD::NoSuchDS
+
+if the given datasource can't be found in the RRD file
+
+=back
+
 =cut
 
 sub boundaries
@@ -71,19 +93,28 @@ sub boundaries
     my($self, $rrdfile, $ds, %args) = @_;
     my($min, $max) = @args{qw(min max)};
 
+    if(defined $min and defined $max && $min < $max)
+    {
+        throw Error::Argument("Min can't be greater than max value");
+    }
+
     my $value;
     try
     {
         my $rrd = new RRD::Query($rrdfile);
         $value = $rrd->fetch($ds);
     }
-    catch Error::Simple with
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
     {
         shift->throw();
     };
     if(isNaN($value))
     {
-        throw Error::Simple("Current value is NaN");
+        throw Error::RRD::isNaN("Current value is NaN");
     }
 
     if(defined $min && $value < $min)
@@ -129,6 +160,28 @@ will return false.
 
 =back
 
+Throws:
+
+=over 4
+
+=item Error::Argument
+
+if exact argument isn't given
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::isNaN
+
+if fetched value is Not a Number
+
+=item Error::RRD::NoSuchDS
+
+if the given datasource can't be found in the RRD file
+
+=back
+
 =cut
 
 sub exact
@@ -137,7 +190,7 @@ sub exact
 
     if(!defined($exact))
     {
-        throw Error::Simple("Missing mandatory option: exact");
+        throw Error::Argument("Missing mandatory option: exact");
     }
 
     my $value;
@@ -146,13 +199,17 @@ sub exact
         my $rrd = new RRD::Query($rrdfile);
         $value = $rrd->fetch($ds);
     }
-    catch Error::Simple with
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
     {
         shift->throw();
     };
     if(isNaN($value))
     {
-        throw Error::Simple("Current value is NaN");
+        throw Error::RRD::isNaN("Current value is NaN");
     }
 
     return($value, $exact == $value ? 1 : 0);
@@ -215,6 +272,28 @@ argument is optional and if omitted, it is set to 0.
 
 =back
 
+Throws:
+
+=over 4
+
+=item Error::Argument
+
+on argument error
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::isNaN
+
+if fetched value is Not a Number
+
+=item Error::RRD::NoSuchDS
+
+if the given datasource can't be found in the RRD file
+
+=back
+
 =cut
 
 sub relation
@@ -224,7 +303,19 @@ sub relation
     {
         $self->_relation(0, @args);
     }
-    catch Error::Simple with
+    catch Error::Argument with
+    {
+        shift->throw();
+    }
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::isNaN with
     {
         shift->throw();
     };
@@ -288,6 +379,28 @@ argument is optional and if omitted, it is set to 0.
 
 =back
 
+Throws:
+
+=over 4
+
+=item Error::Argument
+
+on argument error
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::isNaN
+
+if fetched value is Not a Number
+
+=item Error::RRD::NoSuchDS
+
+if the given datasource can't be found in the RRD file
+
+=back
+
 =cut
 
 sub quotient
@@ -298,7 +411,19 @@ sub quotient
     {
         $self->_relation(1, @args);
     }
-    catch Error::Simple with
+    catch Error::Argument with
+    {
+        shift->throw();
+    }
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::isNaN with
     {
         shift->throw();
     };
@@ -312,7 +437,7 @@ sub _relation
 
     if(!defined($threshold) || !($threshold =~ s/^([<>]?)\s*(\d+)\s*(%?)$/$2/))
     {
-        throw Error::Simple("Threshold argument syntax error");
+        throw Error::Argument("Threshold argument syntax error");
     }
 
     my $cmp = $1 || '>';
@@ -322,7 +447,7 @@ sub _relation
     {
         if(!$pct)
         {
-            throw Error::Simple("Threshold have to be a percentage");
+            throw Error::Argument("Threshold have to be a percentage");
         }
     }
 
@@ -336,7 +461,11 @@ sub _relation
         my $rrd = new RRD::Query($rrdfile);
         $value = $rrd->fetch($ds);
     }
-    catch Error::Simple with
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
     {
         shift->throw();
     };
@@ -359,13 +488,17 @@ sub _relation
             my $rrd = new RRD::Query($cmp_rrdfile);
             $cmp_value = $rrd->fetch($cmp_ds, cf => 'AVERAGE', offset => $cmp_time);
         }
-        catch Error::Simple with
+        catch Error::RRDs with
         {
             shift->throw();
+        }
+        catch Error::RRD::NoSuchDS with
+        {
+            shift->thow();
         };
         if(isNaN($cmp_value))
         {
-            throw Error::Simple("Comparison value is NaN");
+            throw Error::RRD::isNaN("Comparison value is NaN");
         }
     }
 
@@ -454,6 +587,28 @@ data source name is also take as the comparison data source name.
 
 =back
 
+Throws:
+
+=over 4
+
+=item Error::Argument
+
+if roll argument isn't given
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::isNaN
+
+if fetched value is Not a Number
+
+=item Error::RRD::NoSuchDS
+
+if the given datasource can't be found in the RRD file
+
+=back
+
 =cut
 
 sub hunt
@@ -463,7 +618,7 @@ sub hunt
 
     if(!defined($roll))
     {
-        throw Error::Simple("Missing mandatory option: roll");
+        throw Error::Argument("Missing mandatory option: roll");
     }
 
     my $cmp_rrdfile ||= $rrdfile;
@@ -475,13 +630,17 @@ sub hunt
         my $rrd = new RRD::Query($rrdfile);
         $value = $rrd->fetch($ds);
     }
-    catch Error::Simple with
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
     {
         shift->throw();
     };
     if(isNaN($value))
     {
-        throw Error::Simple("Current value is NaN");
+        throw Error::RDD::isNaN("Current value is NaN");
     }
 
     if($value == 0)
@@ -496,14 +655,18 @@ sub hunt
         my $rrd = new RRD::Query($cmp_rrdfile);
         $cmp_value = $rrd->fetch($cmp_ds);
     }
-    catch Error::Simple with
+    catch Error::RRDs with
+    {
+        shift->throw();
+    }
+    catch Error::RRD::NoSuchDS with
     {
         shift->throw();
     };
 
     if(isNaN($cmp_value))
     {
-        throw Error::Simple("Hunted value is NaN");
+        throw Error::RRD::isNaN("Hunted value is NaN");
     }
 
     return($value, $cmp_value >= $roll);
@@ -513,6 +676,8 @@ sub hunt
 
 =head2 failure
 
+Aberrant Behavior Detection failure detection.
+
 not yet implemented
 
 =cut
@@ -520,5 +685,9 @@ not yet implemented
 sub failure
 {
 }
+
+package Error::Argument;
+
+use base qw(Error::Simple);
 
 1;
