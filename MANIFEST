@@ -1,4 +1,6 @@
 Makefile.PL
+README
+INSTALL
 Threshold.pm
 Query.pm
 debian/control
