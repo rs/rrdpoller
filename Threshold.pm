@@ -3,7 +3,7 @@ package RRD::Threshold;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.4 2004/12/02 17:44:17 rs Exp $
+# $Id: Threshold.pm,v 1.5 2004/12/02 17:44:39 rs Exp $
 $RRD::Threshold::VERSION = 1.0.0;
 
 =pod
@@ -93,7 +93,7 @@ sub boundaries
     my($self, $rrdfile, $ds, %args) = @_;
     my($min, $max) = @args{qw(min max)};
 
-    if(defined $min and defined $max && $min < $max)
+    if(defined $min and defined $max && $min > $max)
     {
         throw Error::Argument("Min can't be greater than max value");
     }
