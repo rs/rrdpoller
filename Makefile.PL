@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.11 2004/12/07 19:24:55 rs Exp $
+# $Id: Makefile.PL,v 1.12 2004/12/07 19:33:02 rs Exp $
 
 if(!eval {require RRDs; 1})
 {
@@ -65,6 +65,9 @@ changelog ::
 	@test $(shell head -1 debian/changelog|perl -pe 's/.*\(|\).*//g') == $(VERSION) || \
   (echo "Versions mismatch between changelog and script"; false)
 	cvs tag V$(subst .,_,$(VERSION))
+	@echo "Tagging CVS"
+	@! cvs -q tag V$(subst .,_,$(VERSION))|grep -q ^W || \
+  (echo "Some files are already tagged with this version"; false)
 	# TODO: generate a changelog
 
 
