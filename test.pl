@@ -1,8 +1,20 @@
 use strict;
-use Test::More tests => 25;
-use RRD::Threshold;
-use RRDs;
+use Test::More;
 use File::Temp qw(tempdir);
+
+if(eval { require RRDs; 1 })
+{
+    plan tests => 25;
+    eval { require RRD::Threshold; };
+}
+else
+{
+    plan skip_all => 'RRDs library not installed';
+    diag("This module won't be functionnal while you won't install the\n"
+        ."RRDs library. You can find this library in the rrdtool package\n"
+        ."at the following URL: http://rrdtool.cs.pu.edu.tw/download.html\n"
+        ."Once installed, please run this test again.");
+}
 
 # Check for signature
 SKIP:
