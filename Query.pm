@@ -169,4 +169,8 @@ package Error::RRD::NoSuchDS;
 
 use base qw(Error::Simple);
 
+package Error::RRD::isNaN;
+
+use base qw(Error::Simple);
+
 1;
