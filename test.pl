@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 25;
 use RRD::Threshold;
 use RRDs;
 use File::Temp qw(tempdir);
@@ -80,6 +80,17 @@ ok(eq_array($rrd->list(), [qw(test1 test2)]),       '  list() datasources');
 is($rrd->fetch('test1'), 1,                         '  fetch() current value');
 # can't go too far in the past because the CF function can make the value to change
 is($rrd->fetch('test2', offset => 5), 10,           '  fetch() past value');
+SKIP:
+{
+    if(!eval { require Math::RPN; 1 })
+    {
+        skip("Math::RPN isn't installed", 1);
+    }
+    else
+    {
+        is($rrd->fetch('test1,2,+'), 3,                     '  fetch() RPN');
+    }
+}
 
 my $rt = new RRD::Threshold();
 ok(defined $rt,                                     'Test RRD::Threshold, creator');
