@@ -161,7 +161,7 @@ Returns true if the value is Not a Number.
 sub isNaN
 {
     my($value) = @_;
-    return $value eq 'NaN';
+    return !defined $value || $value eq 'NaN';
 }
 
 package Error::RRDs;
