@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 23;
+use Test::More tests => 24;
 use RRD::Threshold;
 use RRDs;
 use File::Temp qw(tempdir);
@@ -76,8 +76,9 @@ if(RRDs::error())
 
 my $rrd = new RRD::Query($rrdfile);
 ok(defined $rrd,                                    'Test RRD::Query, creator');
-is($rrd->fetch('test1'), 1,                         '  fetch current value');
-is($rrd->fetch('test2', offset => 100), 200,        '  fetch past value');
+eq_array($rrd->list(), [qw(test1 test2)],           '  list() datasources');
+is($rrd->fetch('test1'), 1,                         '  fetch() current value');
+is($rrd->fetch('test2', offset => 100), 200,        '  fetch() past value');
 
 my $rt = new RRD::Threshold();
 ok(defined $rt,                                     'Test RRD::Threshold, creator');
