@@ -1,8 +1,6 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $id$
-
 WriteMakefile
 (
  NAME            => 'rrdpoller',
