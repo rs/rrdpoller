@@ -8,8 +8,8 @@ require Exporter;
 @RRD::Query::ISA = qw(Exporter);
 @RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.12 2005/02/04 16:58:53 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.13 2005/02/04 17:48:46 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.13 $ =~ /(\d+)/g;
 
 =pod
 
@@ -185,7 +185,7 @@ sub fetch
         if($names->[$i] eq $ds)
         {
             $found = 1;
-            $value = $data->[0]->[$i];
+            $value = $data->[-1]->[$i];
             last;
         }
     }
