@@ -9,11 +9,11 @@ if(eval { require RRDs; 1 })
 }
 else
 {
-    plan skip_all => 'RRDs library not installed';
     diag("This module won't be functionnal while you won't install the\n"
         ."RRDs library. You can find this library in the rrdtool package\n"
         ."at the following URL: http://rrdtool.cs.pu.edu.tw/download.html\n"
         ."Once installed, please run this test again.");
+    plan skip_all => 'RRDs library not installed';
 }
 
 # Check for signature
