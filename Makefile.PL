@@ -7,6 +7,7 @@ WriteMakefile
  DISTNAME        => 'rrdpoller',
  VERSION_FROM    => 'rrdpoller',
  PERL_ARCHLIB    => undef,
+ EXE_FILES       => [qw(rrdpoller)],
  PREREQ_PM       =>
  {
   Error => '0.15',
