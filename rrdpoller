@@ -3,8 +3,8 @@
 use strict;
 use Error qw(:try);
 
-# $Id: rrdpoller,v 1.13 2005/01/12 10:24:55 rs Exp $
-$main::VERSION = "1.2.1";
+# $Id: rrdpoller,v 1.14 2005/01/17 18:18:06 rs Exp $
+$main::VERSION = "1.2.2";
 
 =pod
 
@@ -107,9 +107,15 @@ computation.
 
 =head2 B<--proxy> I<URL>
 
-I you use this option, the rrdpoller command will turn into an XML-RPC
+If you use this option, the rrdpoller command will turn into an XML-RPC
 client and will ask send all RRD queries to a remote rrdpoller daemon
 (see L<rrdpollerd> for more information).
+
+=head2 B<--max-last> I<seconds>
+
+If this option is specified with an integer, the test will return false if the last
+updated row is older than X I<seconds>. The exit code will be 2 if this test fails
+instead of 1 for normal tests.
 
 =cut
 
@@ -130,6 +136,7 @@ while(@ARGV)
 }
 
 my $proxy = delete($args{proxy});
+my $max_last = delete($args{'max-last'});
 
 my $command = shift(@argv) || usage();
 if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
@@ -137,11 +144,21 @@ if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
     usage();
 }
 
-my $filename   = shift(@argv) || usage();
+my $filename = shift(@argv) || usage();
 my $datasource;
 if($command ne 'list' and $command ne 'ls')
 {
     $datasource = shift(@argv) || usage();
+}
+
+# check if last update is in the allowed interval
+if(defined $max_last)
+{
+    my($last) = call('last', $filename);
+    if(time() - $last > $max_last)
+    {
+        exit 2;
+    }
 }
 
 # let us to cache the Error::RRD::Feature even if not loaded
@@ -490,7 +507,7 @@ sub call
     {
         return _remote_call($method, @args);
     }
-    elsif(grep($_ eq $method, qw(list fetch)))
+    elsif(grep($_ eq $method, qw(last list fetch)))
     {
         if(!eval {require RRD::Query; 1})
         {
@@ -551,22 +568,28 @@ sub usage
     print STDERR <<EOT;
 Syntax:
 
-rrdpoller list|ls <filename>
+rrdpoller [OPTIONS] list|ls <filename>
 
-rrdpoller get <filename> <datasource> --offset <time> --cf <func-name>
+rrdpoller [OPTIONS] get <filename> <datasource> --offset <time> --cf <func-name>
 
-rrdpoller exact <filename> <datasource> <value>
+rrdpoller [OPTIONS] exact <filename> <datasource> <value>
 
-rrdpoller boundaries <filename> <datasource> [--min <number>] [--max <number>]
+rrdpoller [OPTIONS] boundaries <filename> <datasource> [--min <number>] [--max <number>]
 
-rrdpoller relation <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
+rrdpoller [OPTIONS] relation <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
   [--compare-ds <datasource>] [--offset <time>]
 
-rrdpoller quotient <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
+rrdpoller [OPTIONS] quotient <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
   [--target-ds <datasource>] [--offset <time>]
 
-rrdpoller hunt <filename> <datasource> <roll> [--target <filename>]
+rrdpoller [OPTIONS] hunt <filename> <datasource> <roll> [--target <filename>]
   [--target-ds <datasource>]
+
+OPTIONS:
+
+    --proxy             IP address of the rrdpoller daemon
+    --max-last          Max number of seconds allowed for the last update from now
+
 EOT
     exit;
 }
@@ -584,6 +607,10 @@ Successful test
 =item B<1>
 
 Performed test returned a false value
+
+=item B<2>
+
+The max-last was reached
 
 =item B<255>
 

@@ -47,12 +47,13 @@ use POSIX ();
 use Cwd qw(abs_path);
 our $AUTOLOAD;
 
-# $Id: rrdpollerd,v 1.1 2004/12/10 17:35:07 rs Exp $
-$main::VERSION = sprintf "%d.%03d", q$Revision: 1.1 $ =~ /(\d+)/g;
+# $Id: rrdpollerd,v 1.2 2005/01/17 18:18:06 rs Exp $
+$main::VERSION = sprintf "%d.%03d", q$Revision: 1.2 $ =~ /(\d+)/g;
 
 my $Threshold = new RRD::Threshold();
 my @Methods =
 (qw(
+    last
     list
     fetch
     exact
@@ -69,6 +70,7 @@ my $nodetach = 0;
 my($port, $host);
 GetOptions
 (
+    'help|h!'   => \&usage,
     'port|P=i'  => \$options{LocalPort},
     'host|H=s'  => \$options{LocalAddr},
     'root|r=s'  => \$root,
@@ -120,7 +122,7 @@ sub AUTOLOAD
 
     try
     {
-        if($name eq 'list' or $name eq 'fetch')
+        if($name eq 'list' or $name eq 'fetch' or $name eq 'last')
         {
             my $file = shift @args;
             my $rrd = new RRD::Query($file);
@@ -145,6 +147,13 @@ sub AUTOLOAD
 
 sub usage
 {
+    print <<EOF;
+Syntax:
+
+rrdpollerd [--root </rrd/files/dir>] [--nodetach]
+    [--host <local_address>] [--port <port_number>]
+
+EOF
     exit 1;
 }
 

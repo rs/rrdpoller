@@ -8,8 +8,8 @@ require Exporter;
 @RRD::Query::ISA = qw(Exporter);
 @RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.9 2004/12/08 00:49:44 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.10 2005/01/17 18:18:06 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.10 $ =~ /(\d+)/g;
 
 =pod
 
@@ -217,6 +217,7 @@ on RRDs library error
 
 =cut
 
+sub last {get_last(@_)}
 sub get_last
 {
     my($self) = @_;
