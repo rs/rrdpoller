@@ -1,9 +1,35 @@
 package RRD::Threshold;
 
-use RRDs;
+use RRD::Query;
 use Error qw(:try);
 
 =pod
+
+=head1 NAME
+
+RRD::Threshold - Check for thresholds exceeding values in RRD files data
+
+=head1 DESCRIPTION
+
+TODO
+
+=head1 CONSTRUCTOR
+
+The constructor takes no arguments.
+
+=cut
+
+sub new
+{
+    my $proto = shift();
+    my $class = ref($proto) || $proto;
+    my $self = bless({}, $class);
+    return $self;
+}
+
+=pod
+
+=head1 METHODS
 
 =head2 boundaries
 
@@ -39,11 +65,19 @@ false.
 
 sub boundaries
 {
-    my($rrdfile, $ds, $min, $max) = @_;
+    my($self, $rrdfile, $ds, $min, $max) = @_;
 
-    my $value = _get_rrd_value($rrdfile, $ds);
-
-    if($value eq 'NaN')
+    my $value;
+    try
+    {
+        my $rrd = new RRD::Query($rrdfile);
+        $value = $rrd->fetch($ds);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
+    if(isNaN($value))
     {
         throw Error::Simple("Current value is NaN");
     }
@@ -95,16 +129,24 @@ will return false.
 
 sub exact
 {
-    my($rrdfile, $ds, $exact) = @_;
+    my($self, $rrdfile, $ds, $exact) = @_;
 
     if(!defined($exact))
     {
         throw Error::Simple("Missing mandatory option: exact");
     }
 
-    my $value = _get_rrd_value($rrdfile, $ds);
-
-    if($value eq 'NaN')
+    my $value;
+    try
+    {
+        my $rrd = new RRD::Query($rrdfile);
+        $value = $rrd->fetch($ds);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
+    if(isNaN($value))
     {
         throw Error::Simple("Current value is NaN");
     }
@@ -173,20 +215,30 @@ argument is optional and if omitted, it is set to 0.
 
 sub relation
 {
-    _relation(0, @_);
+    try
+    {
+        my $self = shift;
+        $self->_relation(0, @_);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
 }
 
 =pod
 
-Quotient monitor thresholds are similar to relation monitor
-thresholds, except that they consider the quotient of two data
-sources, or alternatively, the same data source at two different time
-points. For a quotient monitor threshold, the value of the first data
-source is computed as a percentage of the value second data source
-(such as 10 is 50% of 20). This percentage is then compared to a
-threshold argument with either the greater than or less than
-operator. The criteria fails when the expression (<percentage> <either
-greater-than or less-than> <threshold>) evaluates to true.
+    ($value, $bool) = relation($rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time)
+
+Quotient thresholds are similar to relation thresholds, except that
+they consider the quotient of two data sources, or alternatively, the
+same data source at two different time points. For a quotient monitor
+threshold, the value of the first data source is computed as a
+percentage of the value second data source (such as 10 is 50% of
+20). This percentage is then compared to a threshold argument with
+either the greater than or less than operator. The criteria fails when
+the expression (<percentage> <either greater-than or less-than>
+<threshold>) evaluates to true.
 
 =over 4
 
@@ -233,12 +285,20 @@ argument is optional and if omitted, it is set to 0.
 
 sub quotient
 {
-    _relation(1, @_);
+    try
+    {
+        my $self = shift;
+        $self->_relation(1, @_);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
 }
 
 sub _relation
 {
-    my($quotient, $rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time) = @_;
+    my($self, $quotient, $rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time) = @_;
 
     if(!defined($threshold) || !($threshold =~ s/^([<>]?)\s*(\d+)\s*(%?)$/$2/))
     {
@@ -260,8 +320,17 @@ sub _relation
     $cmp_ds ||= $ds;
     $cmp_time ||= 0;
 
-    my $value = _get_rrd_value($rrdfile, $ds);
-    if($value eq 'NaN')
+    my $value;
+    try
+    {
+        my $rrd = new RRD::Query($rrdfile);
+        $value = $rrd->fetch($ds);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
+    if(isNaN($value))
     {
         throw Error::Simple("Current value is NaN");
     }
@@ -276,7 +345,16 @@ sub _relation
     else
     {
         $cmp_value = _get_rrd_value($cmp_rrdfile, $cmp_ds, $cmp_time);
-        if($cmp_value eq 'NaN')
+        try
+        {
+            my $rrd = new RRD::Query($cmp_rrdfile);
+            $cmp_value = $rrd->fetch($cmp_ds, $cmp_time);
+        }
+        catch Error::Simple with
+        {
+            shift->throw();
+        };
+        if(isNaN($cmp_value))
         {
             throw Error::Simple("Comparison value is NaN");
         }
@@ -336,13 +414,40 @@ criteria of the hunt monitor threshold fails if the value of the
 monitored data source is non-zero and the current value of the parent
 data source falls below a specified capacity threshold.
 
-TODO
+=over 4
+
+=item rrdfile
+
+The path of the base RRD file.
+
+=item ds
+
+The name of the base data source. The data source must belong to the
+$rrdfile.
+
+=item roll
+
+The threshold of the parent data source. Generally this should be
+slightly less than the maximum capacity of the target.
+
+=item cmp_rrdfile
+
+The path of the parent RRD file. This argument is optional and if
+omitted the base RRD file is also taken as the parent.
+
+=item cmp_ds
+
+The name of the parent data source. This data source must belong to
+the parent RRD file. This argument is optional and if omitted the base
+data source name is also take as the comparison data source name.
+
+=back
 
 =cut
 
 sub hunt
 {
-    my($rrdfile, $ds, $roll, $cmp_rrdfile, $cmp_ds) = @_;
+    my($self, $rrdfile, $ds, $roll, $cmp_rrdfile, $cmp_ds) = @_;
 
     if(!defined($roll))
     {
@@ -352,8 +457,17 @@ sub hunt
     my $cmp_rrdfile ||= $rrdfile;
     my $cmp_ds ||= $ds;
 
-    my $value = _get_rrd_value($rrdfile, $ds);
-    if($value eq 'NaN')
+    my $value;
+    try
+    {
+        my $rrd = new RRD::Query($rrdfile);
+        $value = $rrd->fetch($ds);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
+    if(isNaN($value))
     {
         throw Error::Simple("Current value is NaN");
     }
@@ -364,8 +478,18 @@ sub hunt
         return($value, 1);
     }
 
-    my $cmp_value = _get_rrd_value($cmp_rrdfile, $cmp_ds);
-    if($cmp_value eq 'NaN')
+    my $cmp_value;
+    try
+    {
+        my $rrd = new RRD::Query($cmp_rrdfile);
+        $cmp_value = $rrd->fetch($cmp_ds);
+    }
+    catch Error::Simple with
+    {
+        shift->throw();
+    };
+
+    if(isNaN($cmp_value))
     {
         throw Error::Simple("Hunted value is NaN");
     }
@@ -383,33 +507,6 @@ not yet implemented
 
 sub failure
 {
-}
-
-sub _get_rrd_value
-{
-    my($rrdfile, $ds, $offset) = @_;
-
-    $offset ||= 0;
-    $last = RRDs::last($rrdfile);
-    _throw_rrd_error();
-    my($start, $end, $step, $rows, $legend, $data) = RRDs::xport
-    (
-        '--start' => "$last - $offset",
-        '--end'   => "$last - $offset",
-        "DEF:a=$rrdfile:$ds:AVERAGE",
-        "XPORT:a"
-    );
-    _throw_rrd_error();
-
-    return($data->[0]->[0]);
-}
-
-sub _throw_rrd_error
-{
-    if(RRDs::error())
-    {
-        throw Error::Simple(RRDs::error());
-    }
 }
 
 1;
