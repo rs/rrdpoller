@@ -4,8 +4,6 @@ export DH_ALWAYS_EXCLUDE=CVS
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PACKAGE=$(shell dh_listpackages)
-
 ifndef PERL
 PERL = /usr/bin/perl
 endif
@@ -44,8 +42,11 @@ install-stamp: build-stamp
 	dh_testroot
 	dh_clean -k
 
-	#$(MAKE) test
+	$(MAKE) test
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp PREFIX=/usr
+	mkdir -p $(CURDIR)/debian/rrdpoller/usr/share/man/
+	mv $(CURDIR)/debian/tmp/usr/bin $(CURDIR)/debian/rrdpoller/usr/
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1 $(CURDIR)/debian/rrdpoller/usr/share/man/
 	
 	# As this is a architecture independent package, we are not supposed to install
 	# stuff to /usr/lib. MakeMaker creates the dirs, we delete them from the deb:
