@@ -27,14 +27,14 @@ SHA1 30391fbf655d58ae9f5d72d056655884e9243b0f debian/changelog
 SHA1 79e2650b082afaba442bce3f1cfb7dd7368c2488 debian/control
 SHA1 9dfd55f1b37cb4d3d17ef174c83c7658306da11e debian/librrd-threshold-perl.copyright
 SHA1 6906bdbb31af659bf76149ae912b5b6b08e9b5ea debian/rrdpoller.copyright
-SHA1 4c9e36415aee5acacde76c9a9b70090e61fa91de debian/rules
+SHA1 f890fa5fbf2216be53f2aa213485b1a2915fcc4a debian/rules
 SHA1 37492e8ff475bceba9b1b703d74108b18b4a81f2 rrdpoller
 SHA1 6389d0ce85cd72386200fde4fdb30c36ee07b260 rrdpollerd
 SHA1 ca1f2f32d6bf302d6908cbbfa45f7fcbb1b8f72e test.pl
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFCE3fdg72S1jnCT0ERAqPyAJ0dHqMfM6hrl4EJY1nr/p97lXHxKgCfSLOf
-zoi1Gre3ThMc29d8l+hpUnM=
-=vrZs
+iD8DBQFCE3hpg72S1jnCT0ERAgfhAJ46Qc226a8rbDsOORGiZaR4WCAbQQCeJfZQ
+NjzpzgLk9zCxAJkzKZx8VSs=
+=7PVL
 -----END PGP SIGNATURE-----
