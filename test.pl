@@ -1,8 +1,31 @@
 use strict;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use RRD::Threshold;
 use RRDs;
 use File::Temp qw(tempdir);
+
+# Check for signature
+SKIP:
+{
+    if(!-s 'SIGNATURE')
+    {
+        skip("No signature file found", 1);
+    }
+    elsif(!eval { require Module::Signature; 1 })
+    {
+        skip("Next time around, consider install Module::Signature, ".
+             "so you can verify the integrity of this distribution.", 1);
+    }
+    elsif(!eval { require Socket; Socket::inet_aton('pgp.mit.edu') })
+    {
+        skip("Cannot connect to the keyserver", 1);
+    }
+    else
+    {
+        ok(Module::Signature::verify() == Module::Signature::SIGNATURE_OK()
+            => "Valid signature" );
+    }
+}
 
 my $tmpdir = tempdir(CLEANUP => 1);
 my $rrdfile = "$tmpdir/test.rrd";
