@@ -3,7 +3,7 @@
 use strict;
 use Error qw(:try);
 
-# $Id: rrdpoller,v 1.18 2005/02/28 17:32:36 rs Exp $
+# $Id: rrdpoller,v 1.19 2005/02/28 17:42:35 rs Exp $
 $main::VERSION = "1.5.0";
 
 =pod
@@ -112,14 +112,14 @@ replication is running.
 
 =head1 COMMAND SYNTAX
 
-The rrdpoller is followed by one of its subcommand and related arguments. Sub-command
-arguments are key=value pair and can alternatively be written like --key value for
-backward compatibility. Several subcommands can be chained with C<and> and/or C<or>
-keywords. Each sub-commands return a result, one by line in the order they have been 
-called. When several sub-commands are chained, all sub-commands are executed, even
-if the first have failed and the second was chained with the C<and> keyword. You can
-change this behavior with the B<--lazy> option, but don't expect to see the result of
-sub-commands that doesn't have been executed.
+The rrdpoller is followed by one of its sub-command and related arguments (See below).
+Sub-commands arguments are B<key>=I<value> pair and can alternatively be written as
+B<--key> I<value> pair for backward compatibility. Since version 1.5.0, several sub-commands
+can be chained together with special keywords C<and> and C<or>. Each sub-commands return
+a result, one by line in the order they have been  called. When several sub-commands are
+chained, all sub-commands are executed, even if the first have failed and the second was
+chained with the C<and> keyword. You can change this behavior with the B<--lazy> option,
+but don't expect to see the result of sub-commands that doesn't have been executed then.
 
 =head1 COMMON OPTIONS
 
@@ -311,7 +311,7 @@ offset that will be expressed as: <last_inserted_time> - <offset>.
 
 =over 4
 
-=item B<--offset> I<time>
+=item B<offset>=I<time>
 
 Makes the B<get> command to retrieve an earlier value. It substract
 the value of I<time> to the timestamp of the last value inserted in
