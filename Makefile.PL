@@ -1,24 +1,79 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.14 2004/12/08 15:36:54 rs Exp $
+# $Id: Makefile.PL,v 1.15 2004/12/10 17:36:42 rs Exp $
+$| = 1;
+
+my $quiet    = grep(uc($_) eq 'QUIET', @ARGV);
+my $defaults = grep(uc($_) eq 'DEFAULTS', @ARGV);
+
+if(!$quiet)
+{
+    print <<EOT;
+Welcome to the rrdpoller installation script. There is several way to
+call me. You can pass some argument to change some Makefile generation
+behaviors:
+
+    perl Makefile.PL [OPTIONS]
+
+OPTIONS:
+
+    QUIET       This option removes all help text like this one.
+    DEFAULTS    This option will choose all default values instead of
+                asking you when a choice is possible.
+EOT
+    
+    if(!$defaults)
+    {
+        print "Do you want to continue ? [Y/n]: ";
+        my $answer;
+        chomp($answer);
+        exit if($answer =~ /^n/i);
+    }
+}
 
 if(!eval {require RRDs; 1})
 {
-    $| = 1;
-    print <<EOT;
+    print <<EOT if not $quiet;
 The RRDs perl library seems not installed on your system. This module
 can't work without this library. You can download this library on the
 following URL: http://rrdtool.cs.pu.edu.tw/download.html. If you install
 this module anyway, it won't be usable until the RRDs library won't be
-installed. Do you want to install this module anyway [Y/n]:
+installed.
 EOT
-    my $answer = <>;
-    chomp($answer);
-    if($answer =~ /^n/i)
+    my $answer = 'y';
+    if(!$defaults)
     {
-        exit 1;
+        print "Do you want to install rrdpoller anyway [Y/n]: ";
+        my $answer = <STDIN>;
+        chomp($answer);
     }
+    exit 1 if($answer =~ /^n/i);
+}
+
+my $answer = 'n';
+my %OptionalModules;
+if(!$defaults)
+{
+    print <<EOT if not $quiet;
+If you intend to use the network feature of rrdpoller, there is some
+additionnal module required. They aren't needed to use rrdpoller as a
+local only tool. If you don't want the installation process to complain
+about missing modules reply yes to this question.
+EOT
+    print "Do you want to ignore modules dependancy for network feature [y/N]: ";
+    $answer = <STDIN>;
+}
+chomp($answer);
+if($answer !~ /^y/i)
+{
+    %OptionalModules =
+    (
+        'XMLRPC::Lite'            => 0,
+        'XMLRPC::Transport::HTTP' => 0,
+        'Getopt::Long'            => 0,
+        'Cwd'                     => 0,
+    );
 }
 
 WriteMakefile
@@ -38,6 +93,7 @@ WriteMakefile
   'Error'        => '0.15',
   'RRDs'         => '1.000481',
   'File::Temp'   => '',
+  %OptionalModules
  },
  AUTHOR          => 'Olivier Poitrey <rs@mmania.com>',
  dist            =>
