@@ -1,7 +1,10 @@
 package RRD::Threshold;
 
-use RRD::Query;
+use RRD::Query qw(isNaN);
 use Error qw(:try);
+
+# $Id: Threshold.pm,v 1.3 2004/12/02 17:11:47 rs Exp $
+$RRD::Threshold::VERSION = 1.0.0;
 
 =pod
 
@@ -33,7 +36,7 @@ sub new
 
 =head2 boundaries
 
-    ($value, $bool) = boundaries($rrdfile, $ds, $min, $max)
+    ($value, $bool) = boundaries($rrdfile, $ds, min => $min, max => $max)
 
 This threshold takes too optional values, a minimum and a maximum
 value. If the data source strays outside of this interval, it returns
@@ -65,7 +68,8 @@ false.
 
 sub boundaries
 {
-    my($self, $rrdfile, $ds, $min, $max) = @_;
+    my($self, $rrdfile, $ds, %args) = @_;
+    my($min, $max) = @args{qw(min max)};
 
     my $value;
     try
@@ -215,10 +219,10 @@ argument is optional and if omitted, it is set to 0.
 
 sub relation
 {
+    my($self, @args) = @_;
     try
     {
-        my $self = shift;
-        $self->_relation(0, @_);
+        $self->_relation(0, @args);
     }
     catch Error::Simple with
     {
@@ -228,7 +232,10 @@ sub relation
 
 =pod
 
-    ($value, $bool) = relation($rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time)
+    ($value, $bool) = relation($rrdfile, $ds, $threshold, %args,
+                               cmp_rrdfile => $cmp_rrdfile,
+                               cmp_ds      => $cmp_ds,
+                               cmp_timp    => $cmp_time);
 
 Quotient thresholds are similar to relation thresholds, except that
 they consider the quotient of two data sources, or alternatively, the
@@ -285,10 +292,11 @@ argument is optional and if omitted, it is set to 0.
 
 sub quotient
 {
+    my($self, @args) = @_;
+
     try
     {
-        my $self = shift;
-        $self->_relation(1, @_);
+        $self->_relation(1, @args);
     }
     catch Error::Simple with
     {
@@ -298,7 +306,9 @@ sub quotient
 
 sub _relation
 {
-    my($self, $quotient, $rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time) = @_;
+    my($self, $quotient, $rrdfile, $ds, $threshold, %args) = @_;
+    my($cmp_rrdfile, $cmp_ds, $cmp_time) =
+      @args{qw(cmp_rrdfile cmp_ds cmp_time)};
 
     if(!defined($threshold) || !($threshold =~ s/^([<>]?)\s*(\d+)\s*(%?)$/$2/))
     {
@@ -344,11 +354,10 @@ sub _relation
     }
     else
     {
-        $cmp_value = _get_rrd_value($cmp_rrdfile, $cmp_ds, $cmp_time);
         try
         {
             my $rrd = new RRD::Query($cmp_rrdfile);
-            $cmp_value = $rrd->fetch($cmp_ds, $cmp_time);
+            $cmp_value = $rrd->fetch($cmp_ds, cf => 'AVERAGE', offset => $cmp_time);
         }
         catch Error::Simple with
         {
@@ -402,7 +411,9 @@ sub _relation
 
 =head2 hunt
 
-    ($value, $bool) = hunt($rrdfile, $ds, $roll, $cmp_rrdfile, $cmp_ds)
+    ($value, $bool) = hunt($rrdfile, $ds, $roll,
+                           cmp_rrdfile => $cmp_rrdfile,
+                           cmp_ds      => $cmp_ds)
 
 The hunt threshold is designed for the situation where the data source
 serves as an overflow for another data source; that is, if one data
@@ -447,7 +458,8 @@ data source name is also take as the comparison data source name.
 
 sub hunt
 {
-    my($self, $rrdfile, $ds, $roll, $cmp_rrdfile, $cmp_ds) = @_;
+    my($self, $rrdfile, $ds, $roll, %args) = @_;
+    my($cmp_rrdfile, $cmp_ds) = @args{qw(cmp_rrdfile cmp_ds)};
 
     if(!defined($roll))
     {
