@@ -1,16 +1,17 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.12 2004/12/07 19:33:02 rs Exp $
+# $Id: Makefile.PL,v 1.13 2004/12/08 01:11:24 rs Exp $
 
 if(!eval {require RRDs; 1})
 {
     $| = 1;
     print <<EOT;
 The RRDs perl library seems not installed on your system. This module
-can't work without this library. If you install this module anyway,
-it won't be usable until the RRDs library won't be installed. Do you
-want to install this module anyway [Y/n]:
+can't work without this library. You can download this library on the
+following URL: http://rrdtool.cs.pu.edu.tw/download.html. If you install
+this module anyway, it won't be usable until the RRDs library won't be
+installed. Do you want to install this module anyway [Y/n]:
 EOT
     my $answer = <>;
     chomp($answer);
