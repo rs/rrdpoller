@@ -13,7 +13,7 @@ $main::VERSION = "1.0.0";
 
 rrdpoller - Retrieve RRD file data and apply some threshold algorithm
 
-=head1 SYNOPSYS
+=head1 SYNOPSIS
 
 B<rrdpoller> B<get> I<filename> I<datasource> [B<--offset> I<time>]
 [B<--cf> I<func-name>]
@@ -23,10 +23,10 @@ B<rrdpoller> B<exact> I<filename> I<datasource> I<value>
 B<rrdpoller> B<boundaries> I<filename> I<datasource> [B<--min> I<number>]
 [B<--max> I<number>]
 
-B<rrdpoller> B<relation> I<filename> I<datasource> I<[E<lt>|E<gt>]threshold[%]>
+B<rrdpoller> B<relation> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
 [B<--target> I<filename>] [B<--compare-ds> I<datasource>] [B<--offset> I<time>]
 
-B<rrdpoller> B<quotient> I<filename> I<datasource> I<[E<lt>|E<gt>]threshold[%]>
+B<rrdpoller> B<quotient> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
 [B<--target> I<filename>] [B<--target-ds> I<datasource>] [B<--offset> I<time>]
 
 B<rrdpoller> B<hunt> I<filename> I<datasource> I<roll> [B<--parent> I<filename>]
