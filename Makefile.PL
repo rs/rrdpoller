@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.10 2004/12/07 18:55:37 rs Exp $
+# $Id: Makefile.PL,v 1.11 2004/12/07 19:24:55 rs Exp $
 
 if(!eval {require RRDs; 1})
 {
@@ -41,7 +41,7 @@ WriteMakefile
  AUTHOR          => 'Olivier Poitrey <rs@mmania.com>',
  dist            =>
  {
-  DIST_DEFAULT   => 'README all checkout metafile sign tardist checkin',
+  DIST_DEFAULT   => 'README all changelog checkout metafile sign tardist checkin',
   COMPRESS       => 'gzip -9f',
  }
 );
@@ -60,6 +60,13 @@ q{
 README: rrdpoller Makefile
 	chmod +w $@
 	pod2text rrdpoller > $@
+
+changelog ::
+	@test $(shell head -1 debian/changelog|perl -pe 's/.*\(|\).*//g') == $(VERSION) || \
+  (echo "Versions mismatch between changelog and script"; false)
+	cvs tag V$(subst .,_,$(VERSION))
+	# TODO: generate a changelog
+
 
 checkout ::
 	cvs up META.yml SIGNATURE README
