@@ -4,11 +4,12 @@ use strict;
 use RRDs;
 use Error qw(:try);
 
-use Exporter qw(import);
-our @EXPORT_OK = qw(isNaN);
+require Exporter;
+@RRD::Query::ISA = qw(Exporter);
+@RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.8 2004/12/07 12:53:21 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.9 2004/12/08 00:49:44 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)/g;
 
 =pod
 
@@ -74,7 +75,7 @@ sub list
         }
     }
 
-    return([keys %ds]);
+    return([sort keys %ds]);
 }
 
 =head2 fetch
