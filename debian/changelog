@@ -1,3 +1,10 @@
+rrdpoller (1.1.0) unstable; urgency=low
+
+  * added datasource RPN feature
+  * clean some code/doc
+
+ -- Olivier Poitrey <rs@mmania.com>  Tue,  7 Dec 2004 14:50:00 +0100
+
 rrdpoller (1.0.2) unstable; urgency=low
 
   * rrdpoller, Query.pm: added list command
