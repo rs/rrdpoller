@@ -1,3 +1,9 @@
+rrdpoller (1.0.1) unstable; urgency=low
+
+  * First public release (many doc change and packaging updates)
+
+ -- Olivier Poitrey <rs@mmania.com>  Mon,  6 Dec 2004 13:34:11 +0100
+
 rrdpoller (1.0.0) unstable; urgency=low
 
   * Initial release.
