@@ -1,3 +1,9 @@
+rrdpoller (1.0.2) unstable; urgency=low
+
+  * added list command 
+
+ -- Olivier Poitrey <rs@mmania.com>  Mon,  6 Dec 2004 19:20:11 +0100
+
 rrdpoller (1.0.1) unstable; urgency=low
 
   * First public release (many doc change and packaging updates)

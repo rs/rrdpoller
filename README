@@ -2,6 +2,8 @@ NAME
     rrdpoller - Retrieve RRD file data and apply some threshold algorithm
 
 SYNOPSIS
+    rrdpoller list|ls *filename*
+
     rrdpoller get *filename* *datasource* [--offset *time*] [--cf
     *func-name*]
 
@@ -34,6 +36,9 @@ EXAMPLES
     Those examples are fictive, they doesn't represent real numbers. It's
     just to let you figure out what you can do with each algorithm.
 
+    rrdpoller ls host1-net.rrd
+        Returns the whole list of datasources contained in the file.
+
     rrdpoller get host1-load.rrd 1min_avg
         Get the current value of the *1min_avg* datasource of the
         *host1-load.rrd* file.
@@ -52,7 +57,7 @@ EXAMPLES
         delta is greater than 100000.
 
     rrdpoller quotient host1-mem.rrd usage 90% --target-ds total
-        Compare the current *usage* datasource of the *host1-disk.rrd* file
+        Compare the current *usage* datasource of the *host1-mem.rrd* file
         and divide it by the *total* datasource of the same file. The
         command returns false if the obtained percentage is greater than
         *90%*.
@@ -64,10 +69,14 @@ EXAMPLES
 
 SUB-COMMANDS
     All sub-commands needs at least the too first arguments *filename* and
-    *datasource*. Except for the get command (which doesn't perform a test),
-    all sub-command will change the rrdpoller return code to false (1) if
-    the test fails. All sub-commands will print the given *datasource* value
-    of the given *filename* on the standard output.
+    *datasource* (except for list command). Except for the get and list
+    commands (which doesn't perform a test), all sub-command will change the
+    rrdpoller return code to false (1) if the test fails. All sub-commands
+    will print the given *datasource* value of the given *filename* on the
+    standard output.
+
+  list|ls *filename*
+    This command list all datasources of the given file.
 
   get *filename* *datasource* [OPTIONS]
     This sub-command the last inserted value in the given *datasource* of
