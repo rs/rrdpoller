@@ -3,7 +3,7 @@ package RRD::Threshold;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.6 2004/12/03 09:45:44 rs Exp $
+# $Id: Threshold.pm,v 1.7 2004/12/03 18:14:47 rs Exp $
 $RRD::Threshold::VERSION = "1.0.0";
 
 =pod
@@ -40,7 +40,7 @@ sub new
 
 This threshold takes too optional values, a minimum and a maximum
 value. If the data source strays outside of this interval, it returns
-false. To omit the minimum or maximum value, use an undef value.
+false.
 
 =over 4
 
@@ -219,17 +219,21 @@ sub exact
 
 =head2 relation
 
-    ($value, $bool) = relation($rrdfile, $ds, $threshold, $cmp_rrdfile, $cmp_ds, $cmp_time)
+    ($value, $bool) = relation($rrdfile, $ds, $threshold, %args,
+                               cmp_rrdfile => $cmp_rrdfile,
+                               cmp_ds      => $cmp_ds,
+                               cmp_timp    => $cmp_time);
+
 
 A relation threshold considers the difference between two data sources
-(possibly from different targets), or alternatively, the difference
+(possibly from different RRD files), or alternatively, the difference
 between two temporally distinct values for the same data source. The
 difference can be expressed as absolute value, or as a percentage of
 the second data source (comparison) value. This difference is compared
-to a threshold argument with either the greater than or less than
-operator. The criteria fails when the expression (<absolute or
-relative difference> <either greater-than or less-than> <threshold>)
-evaluates to false.
+to a threshold argument with either the greater than (>) or lesser
+than (<) operator. The criteria fails when the expression (<absolute
+or relative difference> <either greater-than or less-than>
+<threshold>) evaluates to false.
 
 =over 4
 
@@ -259,9 +263,9 @@ omitted the first RRD file is also taken as the comparison target.
 
 The name of the comparison data source. This data source must belong
 to the comparison RRD file. This argument is optional and if omitted
-the monitor threshold data source name is also taken as the comparison
-data source name. If the value is a number, the value is taken as-is
-to do the comparison.
+the first data source name is also taken as the comparison data source
+name.  If the value is a number, the value is considered as a fix
+value and is taked for the comparison
 
 =item cmp_time
 
@@ -323,7 +327,9 @@ sub relation
 
 =pod
 
-    ($value, $bool) = relation($rrdfile, $ds, $threshold, %args,
+=head2 quotient
+
+    ($value, $bool) = quotient($rrdfile, $ds, $threshold, %args,
                                cmp_rrdfile => $cmp_rrdfile,
                                cmp_ds      => $cmp_ds,
                                cmp_timp    => $cmp_time);
@@ -332,11 +338,12 @@ Quotient thresholds are similar to relation thresholds, except that
 they consider the quotient of two data sources, or alternatively, the
 same data source at two different time points. For a quotient monitor
 threshold, the value of the first data source is computed as a
-percentage of the value second data source (such as 10 is 50% of
-20). This percentage is then compared to a threshold argument with
-either the greater than or less than operator. The criteria fails when
-the expression (<percentage> <either greater-than or less-than>
-<threshold>) evaluates to true.
+percentage of the second data source value (such as 10 (first
+datasource) is 50% of 20 (second datasource)). This percentage is then
+compared to a threshold argument with either the greater than (>) or
+less than (<) operator. The criteria fails when the expression
+(<percentage> <either greater-than or less-than> <threshold>)
+evaluates to false.
 
 =over 4
 
@@ -352,10 +359,10 @@ $rrdfile.
 =item threadhold
 
 The threshold number, optionally preceded by the greater than (>) or
-less than (<) symbol followed by the symbol percent (%). If omitted,
-greater than is used by default and the expression, difference >
-threshold, is evaluated. "<10%" and "50%" are examples of valid
-thresholds.
+less than (<) symbol and followed by the symbol percent (%). If
+omitted, greater than is used by default and the expression,
+difference > threshold, is evaluated. "<10%" and "50%" are examples of
+valid thresholds.
 
 =item cmp_rrdfile
 
@@ -437,7 +444,7 @@ sub _relation
 
     if(!defined($threshold) || !($threshold =~ s/^([<>]?)\s*(\d+)\s*(%?)$/$2/))
     {
-        throw Error::Argument("Threshold argument syntax error");
+        throw Error::Argument("Threshold argument syntax error: $threshold");
     }
 
     my $cmp = $1 || '>';
