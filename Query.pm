@@ -8,8 +8,8 @@ require Exporter;
 @RRD::Query::ISA = qw(Exporter);
 @RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.11 2005/02/04 13:34:44 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.11 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.12 2005/02/04 16:58:53 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.12 $ =~ /(\d+)/g;
 
 =pod
 
@@ -159,22 +159,17 @@ sub fetch
         return(scalar Math::RPN::rpn(join(',', @rpn)));
     }
 
-    my $last;
-    try
-    {
-        $last = $self->get_last();
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    };
+    # compute the time of the last value
+    my $info = $self->info();
+    my $rra_step = $info->{step} * $info->{'rra[0].pdp_per_row'};
+    my $endtime = $info->{last_update} - ($info->{last_update} % $rra_step);
 
     my($start, $step, $names, $data) = RRDs::fetch
     (
      $self->{file},
      $args{cf},
-     '--start' => "$last - $args{offset}",
-     '--end'   => "$last - $args{offset}",
+     '--start' => 'end-'.$info->{step},
+     '--end'   => $endtime.'-'.$args{offset},
     );
     if(RRDs::error())
     {
@@ -226,14 +221,26 @@ sub get_last
 {
     my($self) = @_;
 
-    my $last = RRDs::last($self->{file});
-    if(RRDs::error())
+    return $self->info()->{last_update};
+}
+
+sub info
+{
+    my($self) = @_;
+
+    my $mtime = (stat($self->{file}))[9];
+    if(!defined $self->{info_ts} || $self->{info_ts} != $mtime)
     {
-        throw Error::RRDs("Can't get last: " . RRDs::error(),
-                          -object => 'RRDs');
+        $self->{info} = RRDs::info($self->{file});
+        if(RRDs::error())
+        {
+            throw Error::RRDs("Can't get info: " . RRDs::error(),
+                              -object => 'RRDs');
+        }
+        $self->{info_ts} = $mtime;
     }
 
-    return $last;
+    return $self->{info};
 }
 
 =pod
