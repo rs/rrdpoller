@@ -80,15 +80,18 @@ sub fetch
 
     # get DS id
     my $value;
+    my $found = 0;
     for(my $i = 0; $i < @$names; $i++)
     {
         if($names->[$i] eq $ds)
         {
+            $found = 1;
             $value = $data->[0]->[$i];
+            last;
         }
     }
 
-    if(!defined($value))
+    if(!$found)
     {
         throw Error::RRD::NoSuchDS("Can't find datasource in RRD");
     }
