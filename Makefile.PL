@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.16 2004/12/10 17:39:59 rs Exp $
+# $Id: Makefile.PL,v 1.17 2004/12/10 17:43:04 rs Exp $
 $| = 1;
 
 my $quiet    = grep(uc($_) eq 'QUIET', @ARGV);
@@ -93,7 +93,7 @@ WriteMakefile
   'Threshold.pm' => '$(INST_LIB)/RRD/Threshold.pm',
   'Query.pm'     => '$(INST_LIB)/RRD/Query.pm',
  },
- EXE_FILES       => [qw(rrdpoller)],
+ EXE_FILES       => [qw(rrdpoller rrdpollerd)],
  PREREQ_PM       =>
  {
   'Error'        => '0.15',
