@@ -3,8 +3,8 @@ package RRD::Threshold;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.5 2004/12/02 17:44:39 rs Exp $
-$RRD::Threshold::VERSION = 1.0.0;
+# $Id: Threshold.pm,v 1.6 2004/12/03 09:45:44 rs Exp $
+$RRD::Threshold::VERSION = "1.0.0";
 
 =pod
 
