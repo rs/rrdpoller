@@ -1,3 +1,13 @@
+rrdpoller (1.1.1) unstable; urgency=low
+
+  * test.pl: fix load() test
+  * test.pl: add two tests for RRD::* modules
+  * Query.pm: sort list() output
+  * Query.pm: fix Exporter code for older version compat
+  * Makefile.PL, test.pl: handle case when RRDs library isn't installed
+
+ -- Olivier Poitrey <rs@mmania.com>  Wed,  8 Dec 2004 02:00:56 +0100
+
 rrdpoller (1.1.0) unstable; urgency=low
 
   * added datasource RPN feature
