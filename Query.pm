@@ -1,13 +1,14 @@
 package RRD::Query;
 
+use strict;
 use RRDs;
 use Error qw(:try);
 
 use Exporter qw(import);
-@EXPORT_OK = qw(isNaN);
+our @EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.7 2004/12/06 18:21:20 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.7 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.8 2004/12/07 12:53:21 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)/g;
 
 =pod
 
@@ -85,11 +86,46 @@ is omitted, the last inserted value is returned, otherwise the last
 value - $offset is returned. If $cf (consolidation function) is
 omited, AVERAGE is used.
 
-Throws:
+=head3 Options
 
-Error::RRDs - on RRDs library error
+=over 4
 
-Error::RRD::NoSuchDS - if datasource can't be found in RRD file
+=item ds
+
+Datasource you want to fetch. If the datasource contains comat (,),
+your datasource will be interpreted as an RPN (Reverse Polish
+Notation) expression (see L<Math::RPN>). If the C<Math::RPN> module
+isn't loadable, an C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
+
+=item cf
+
+Consolidation function name you want to fetch. If omited, the AVERAGE
+consolidation function is used.
+
+=item offset
+
+Time offset to go back in the past from the last inserted value time.
+
+=head3 Throws
+
+=over 4
+
+=item Error::RRDs
+
+on RRDs library error
+
+=item Error::RRD::NoSuchDS
+
+if datasource can't be found in RRD file
+
+=item Error::RPN::Feature
+
+if you try to use an RPN DS without Math::RPN installed
+
+=back
 
 =cut
 
@@ -99,6 +135,24 @@ sub fetch
 
     $args{offset} ||= 0;
     $args{cf}     ||= 'AVERAGE';
+
+    # treat RPN DS (ie: ds1,ds2,-)
+    if(index($ds, ',') != -1)
+    {
+        $self->_needs_rpn();
+        my @rpn = split(/,/, $ds);
+        my %ds;
+        @ds{@{$self->list()}} = undef;
+        for my $item (@rpn)
+        {
+            if(exists($ds{$item}))
+            {
+                # substitute variables by their value
+                $item = $self->fetch($item, 1);
+            }
+        }
+        return(scalar Math::RPN::rpn(join(',', @rpn)));
+    }
 
     my $last;
     try
@@ -138,7 +192,7 @@ sub fetch
 
     if(!$found)
     {
-        throw Error::RRD::NoSuchDS("Can't find datasource in RRD");
+        throw Error::RRD::NoSuchDS("Can't find datasource in RRD: ".$ds);
     }
 
     return $value;
@@ -152,9 +206,13 @@ sub fetch
 
 Returns the timestamp of the inserted value of the RRD file.
 
-Throws:
+=head3 Throws
 
-Error::RRDs - on RRDs library error
+=over 4
+
+=item Error::RRDs
+
+on RRDs library error
 
 =cut
 
@@ -170,25 +228,6 @@ sub get_last
     }
 
     return $last;
-}
-
-sub get_step
-{
-    my($self) = @_;
-
-    if(!defined $self->{step})
-    {
-        my $info = RRDs::info($self->{file});
-        if(RRDs::error())
-        {
-            throw Error::RRDs("Can't get step: " . RRDs::error(),
-                              -object => 'RRDs');
-        }
-
-        $self->{step} = $info->{step};
-    }
-
-    return $self->{step};
 }
 
 =pod
@@ -207,6 +246,18 @@ sub isNaN
 {
     my($value) = @_;
     return !defined $value || $value eq 'NaN';
+}
+
+sub _needs_rpn
+{
+    try
+    {
+        require Math::RPN;
+    }
+    otherwise
+    {
+        throw Error::RRD::Feature("Can't load Math::RPN", -object => 'Math::RPN');
+    };
 }
 
 =pod
@@ -238,6 +289,16 @@ use base qw(Error::Simple);
 =cut
 
 package Error::RRD::isNaN;
+
+use base qw(Error::Simple);
+
+=pod
+
+=head2 Error::RRD::Feature
+
+=cut
+
+package Error::RRD::Feature;
 
 use base qw(Error::Simple);
 
