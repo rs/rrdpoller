@@ -8,8 +8,8 @@ require Exporter;
 @RRD::Query::ISA = qw(Exporter);
 @RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.14 2005/02/09 18:22:37 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.14 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.15 2005/02/28 17:37:12 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.15 $ =~ /(\d+)/g;
 
 =pod
 
@@ -109,6 +109,8 @@ consolidation function is used.
 =item offset
 
 Time offset to go back in the past from the last inserted value time.
+
+=back
 
 =head3 Throws
 
