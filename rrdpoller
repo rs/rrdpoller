@@ -3,8 +3,8 @@
 use strict;
 use Error qw(:try);
 
-# $Id: rrdpoller,v 1.17 2005/02/09 18:23:40 rs Exp $
-$main::VERSION = "1.3.2";
+# $Id: rrdpoller,v 1.18 2005/02/28 17:32:36 rs Exp $
+$main::VERSION = "1.5.0";
 
 =pod
 
@@ -16,22 +16,22 @@ rrdpoller - Retrieve RRD file data and apply some threshold algorithm
 
 B<rrdpoller> [B<OPTIONS>] B<list|ls> I<filename>
 
-B<rrdpoller> [B<OPTIONS>] B<get> I<filename> I<datasource> [B<--offset> I<time>]
-[B<--cf> I<func-name>]
+B<rrdpoller> [B<OPTIONS>] B<get> I<filename> I<datasource> [B<offset>=I<time>]
+[B<cf>=I<func-name>] [and|or command...]
 
-B<rrdpoller> [B<OPTIONS>] B<exact> I<filename> I<datasource> I<value>
+B<rrdpoller> [B<OPTIONS>] B<exact> I<filename> I<datasource> I<value> [and|or command...]
 
-B<rrdpoller> [B<OPTIONS>] B<boundaries> I<filename> I<datasource> [B<--min> I<number>]
-[B<--max> I<number>]
+B<rrdpoller> [B<OPTIONS>] B<boundaries> I<filename> I<datasource> [B<min>=I<number>]
+[B<max>=I<number>] [and|or command...]
 
 B<rrdpoller> [B<OPTIONS>] B<relation> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
-[B<--target> I<filename>] [B<--compare-ds> I<datasource>] [B<--offset> I<time>]
+[B<target>=I<filename>] [B<compare-ds>=I<datasource>] [B<offset>=I<time>] [and|or command...]
 
 B<rrdpoller> [B<OPTIONS>] B<quotient> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
-[B<--target> I<filename>] [B<--target-ds> I<datasource>] [B<--offset> I<time>]
+[B<target>=I<filename>] [B<target-ds>=I<datasource>] [B<offset>=I<time>] [and|or command...]
 
-B<rrdpoller> [B<OPTIONS>] B<hunt> I<filename> I<datasource> I<roll> [B<--parent> I<filename>]
-[B<--parent-ds> I<datasource>]
+B<rrdpoller> [B<OPTIONS>] B<hunt> I<filename> I<datasource> I<roll> [B<parent>=I<filename>]
+[B<parent-ds>=I<datasource>] [and|or command...]
 
 =head1 DESCRIPTION
 
@@ -71,37 +71,55 @@ Same as precedent but querying a remove daemon (see L<rrdpollerd>).
 Get the current value of the I<http> datasource of the
 I<host1-load.rrd> file and return false if not equal to 1.
 
-=item B<rrdpoller> B<boundaries> host1-load.rrd 5min_avg B<--max> 15
+=item B<rrdpoller> B<boundaries> host1-load.rrd 5min_avg B<max>=15
 
 Get the current value of the I<5min_avg> datasource of the
 I<host1-load.rrd> file and return false if greater than I<15>.
 
-=item B<rrdpoller> B<relation> host1-disk.rrd usage 100000 B<--offset> 1min
+=item B<rrdpoller> B<relation> host1-disk.rrd usage 100000 B<offset>=1min
 
 Compare the current I<usage> datasource value of the I<host1-disk.rrd>
 file with the same datasource 1 minute ago and return false if the
 delta is greater than 100000.
 
-=item B<rrdpoller> B<quotient> host1-mem.rrd usage 90% B<--target-ds> total
+=item B<rrdpoller> B<quotient> host1-mem.rrd usage 90% B<target-ds>=total
 
 Compare the current I<usage> datasource of the I<host1-mem.rrd> file
 and divide it by the I<total> datasource of the same file. The command
 returns false if the obtained percentage is greater than I<90%>.
 
-=item B<rrdpoller> B<hunt> pop2.rrd users 40 B<--target> pop1.rrd
+=item B<rrdpoller> B<hunt> pop2.rrd users 40 B<target>=pop1.rrd
 
 If the I<users> datasource of the I<pop2.rrd> file is non-zero and the
 same datasource of the I<pop1.rrd> hasn't yet reach I<40>, the command
 will return false.
 
-=item B<rrdpoller> B<quotient> host1-mem.rrd high_mem,low_mem,+ 90% B<--target-ds> low_total,high_total,+
+=item B<rrdpoller> B<quotient> host1-mem.rrd high_mem,low_mem,+ 90% B<target-ds>=low_total,high_total,+
 
 Same as former B<quotient> example but using RPN datasource
 feature. Here the high_mem and the low_mem datasources will be summed
 then the low_total and the high_total too before to do the quotient
 computation.
 
+=item B<rrdpoller> B<different> mysql-slave.rrd insert,update,delete,+ 0 B<or> B<equal> mysql-master.rrd insert,update,delete,+ 0
+
+First test will fail if the sum of inserts, updates and deletes is equal to 0.
+If failed, the second test will verify if the same sum is also equal to 0 on
+the master and will finally fail if not. Thus we can verify that the MySQL
+replication is running.
+
 =back
+
+=head1 COMMAND SYNTAX
+
+The rrdpoller is followed by one of its subcommand and related arguments. Sub-command
+arguments are key=value pair and can alternatively be written like --key value for
+backward compatibility. Several subcommands can be chained with C<and> and/or C<or>
+keywords. Each sub-commands return a result, one by line in the order they have been 
+called. When several sub-commands are chained, all sub-commands are executed, even
+if the first have failed and the second was chained with the C<and> keyword. You can
+change this behavior with the B<--lazy> option, but don't expect to see the result of
+sub-commands that doesn't have been executed.
 
 =head1 COMMON OPTIONS
 
@@ -117,65 +135,138 @@ If this option is specified with an integer, the test will return false if the l
 updated row is older than X I<seconds>. The exit code will be 2 if this test fails
 instead of 1 for normal tests.
 
+=head2 B<--lazy>
+
+If several sub-commands are chained with the C<and> or C<or> keywords, don't exec all
+sub-command if the expression doesn't need it.
+
+=head2 B<--quiet>
+
+Don't print sub-command results. Implies B<--lazy>
+
 =cut
 
-my %args;
-my @argv;
+my @margs;
+my @margv;
+my $index = 0;
+my @cond;
 my $_arg;
+my @single_opts = qw(lazy quiet);
 while(@ARGV)
 {
     $_arg = shift;
     if(index($_arg, '--') == 0)
     {
-        $args{substr($_arg, 2)} = shift || usage();
+        # remove "--"
+        $_arg = substr($_arg, 2);
+        if(grep($_arg, @single_opts))
+        {
+            $margs[$index]->{$_arg} = 1;
+        }
+        else
+        {
+            $margs[$index]->{$_arg} = shift || usage();
+        }
+    }
+    elsif($_arg =~ /^([a-z-]+)=(.*)$/)
+    {
+        $margs[$index]->{$1} = $2;
+    }
+    elsif($_arg eq 'and')
+    {
+        push(@cond, 1);
+        $index++;
+    }
+    elsif($_arg eq 'or')
+    {
+        push(@cond, 0);
+        $index++;
     }
     else
     {
-        push(@argv, $_arg);
+        push(@{$margv[$index]}, $_arg);
     }
 }
 
-my $proxy = delete($args{proxy});
-my $max_last = delete($args{'max-last'});
-
-my $command = shift(@argv) || usage();
-if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
-{
-    usage();
-}
-
-my $filename = shift(@argv) || usage();
-my $datasource;
-if($command ne 'list' and $command ne 'ls')
-{
-    $datasource = shift(@argv) || usage();
-}
-
-# check if last update is in the allowed interval
-if(defined $max_last)
-{
-    my($last) = call('last', $filename);
-    if(time() - $last > $max_last)
-    {
-        exit 2;
-    }
-}
+my $proxy = delete($margs[0]->{proxy});
+my $max_last = delete($margs[0]->{'max-last'});
+my $lazy  = delete($margs[0]->{lazy});
+my $quiet = delete($margs[0]->{quiet});
+$lazy = 1 if $quiet; # --quiet implies --lazy
 
 # let us to cache the Error::RRD::Feature even if not loaded
 push(@Error::RRD::Feature::ISA, 'Error::Simple');
 
+my(@argv, %args, $command, $filename, $datasource, @rv);
+for($index = 0; $index < @margv; $index++)
 {
-    no strict qw(refs);
-    try
+    @argv = @{$margv[$index] || []};
+    %args = %{$margs[$index] || {}};
+    
+    $command = shift(@argv) || usage();
+    if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
     {
-        &{$command};
+        usage();
     }
-    catch Error::RRD::Feature with
+
+    $filename = shift(@argv) || usage();
+    if($command ne 'list' and $command ne 'ls')
     {
-        print STDERR "You need the Math::RPN module to use RPN datasources\n";
-        exit 255;
-    };
+        $datasource = shift(@argv) || usage();
+    }
+
+    # check if last update is in the allowed interval
+    if(defined $max_last)
+    {
+        my($last) = call('last', $filename);
+        if(time() - $last > $max_last)
+        {
+            exit 2;
+        }
+    }
+
+    {
+        no strict qw(refs);
+        try
+        {
+            if($lazy)
+            {
+                _eval_cond(&{$command});
+            }
+            else
+            {
+                push(@rv, &{$command});
+            }
+        }
+        catch Error::RRD::Feature with
+        {
+            print STDERR "You need the Math::RPN module to use RPN datasources\n";
+            exit 255;
+        };
+    }
 }
+
+my $rv;
+while(defined($rv = shift(@rv)))
+{
+    _eval_cond($rv);
+}
+
+sub _eval_cond
+{
+    my $rv = shift;
+
+    if(!@cond)
+    {
+        exit($rv ? 0 : 1);
+    }
+    if($rv != shift(@cond))
+    {
+        exit(1);
+    }
+}
+
+usage();
 
 =pod
 
@@ -205,6 +296,7 @@ sub list
 
     my($list) = call('list', $filename);
     print(join("\n", @$list), "\n");
+    return 1;
 }
 
 =pod
@@ -227,7 +319,7 @@ the I<datasource>. The I<time> can be expressed in second (ie I<60>)
 or in RRD time reference specification format (see L<rrdfetch/"TIME
 REFERENCE SPECIFICATION">).
 
-=item B<--cf> I<func-name>
+=item B<cf>=I<func-name>
 
 Default consolidation function is AVERAGE. This option allow you to
 change it to whichever you want.
@@ -243,7 +335,8 @@ sub get
     (@argv || %args) && usage();
 
     my($value) = call('fetch', $filename, $datasource, offset => $offset, cf => $cf);
-    print "$value\n";
+    print "$value\n" unless $quiet;
+    return 1;
 }
 
 =pod
@@ -265,8 +358,8 @@ sub exact
     (@argv || %args) && usage();
 
     my($value, $bool) = call('exact', $filename, $datasource, $exact);
-    print "$value\n";
-    exit($bool ? 0 : 1);
+    print "$value\n" unless $quiet;
+    return $bool;
 }
 
 =pod
@@ -281,11 +374,11 @@ interval, the test fail.
 
 =over 4
 
-=item B<--min> I<number>
+=item B<min>=I<number>
 
 If current value is lower than I<number>, the test fail
 
-=item B<--max> I<number>
+=item B<max>=I<number>
 
 If current value is greater than I<number>, the test fail
 
@@ -303,8 +396,8 @@ sub boundaries
     $opt{min} = $min if defined $min;
     $opt{max} = $max if defined $max;
     my($value, $bool) = call('boundaries', $filename, $datasource, %opt);
-    print "$value\n";
-    exit($bool ? 0 : 1);
+    print "$value\n" unless $quiet;
+    return $bool;
 }
 
 =pod
@@ -332,12 +425,12 @@ difference > threshold, is evaluated. "<10%", ">1000", "50%", and
 
 =over 4
 
-=item B<--target> I<filename>
+=item B<target>=I<filename>
 
 The path of the comparison RRD I<file>. This argument is optional and
 if omitted the first RRD I<file> is also taken as the comparison target.
 
-=item B<--target-ds> I<datasource>
+=item B<target-ds>=I<datasource>
 
 The name of the comparison I<datasource>. This I<datasource> must
 belong to the comparison RRD file. This argument is optional and if
@@ -345,7 +438,7 @@ omitted the first I<datasource> name is also taken as the comparison
 datasource name. If the value is a number, the value is considered as
 a fix value and is taked for the comparison.
 
-=item B<--offset> I<time>
+=item B<offset>=I<time>
 
 The temporal I<offset> to go back from the first value to fetch the
 comparison datasource value. Note that a data source value must exist
@@ -371,8 +464,8 @@ sub relation
     $opt{cmp_ds} = $target_ds if defined $target_ds;
     $opt{offset} = $offset if defined $offset;
     my($value, $bool) = call('relation', $filename, $datasource, $threshold, %opt);
-    print "$value\n";
-    exit($bool ? 0 : 1);
+    print "$value\n" unless $quiet;
+    return $bool;
 }
 
 =pod
@@ -400,12 +493,12 @@ examples of valid thresholds.
 
 =over 4
 
-=item B<--target> I<filename>
+=item B<target>=I<filename>
 
 The path of the comparison RRD I<file>. This argument is optional and
 if omitted the first RRD I<file> is also taken as the comparison target.
 
-=item B<--target-ds> I<datasource>
+=item B<target-ds>=I<datasource>
 
 The name of the comparison I<datasource>. This I<datasource> must
 belong to the comparison RRD file. This argument is optional and if
@@ -413,7 +506,7 @@ omitted the first I<datasource> name is also taken as the comparison
 datasource name. If the value is a number, the value is considered as
 a fix value and is taked for the comparison.
 
-=item B<--offset> I<time>
+=item B<offset>=I<time>
 
 The temporal I<offset> to go back from the first value to fetch the
 comparison datasource value. Note that a data source value must exist
@@ -439,13 +532,13 @@ sub quotient
     $opt{cmp_ds} = $target_ds if defined $target_ds;
     $opt{offset} = $offset if defined $offset;
     my($value, $bool) = call('quotient', $filename, $datasource, $threshold, %opt);
-    print "$value\n";
-    exit($bool ? 0 : 1);
+    print "$value\n" unless $quiet;
+    return $bool;
 }
 
 =pod
 
-=head2 B<hunt> I<roll> B<--parent> <filename> B<--parent-ds> <datasource> B<[OPTIONS]>
+=head2 B<hunt> I<roll> B<[OPTIONS]>
 
 The hunt threshold is designed for the situation where the data source
 serves as an overflow for another data source; that is, if one data
@@ -465,12 +558,12 @@ capacity of the target.
 
 =over 4
 
-=item B<--parent> I<filename>
+=item B<parent>=I<filename>
 
 The path of the comparison RRD I<file>. This argument is optional and
 if omitted the first RRD I<file> is also taken as the comparison target.
 
-=item B<--parent-ds> I<datasource>
+=item B<parent-ds>=I<datasource>
 
 The name of the comparison I<datasource>. This I<datasource> must
 belong to the comparison RRD file. This argument is optional and if
@@ -493,8 +586,8 @@ sub hunt
     $opt{cmp_rrdfile} = $parent_file if defined $parent_file;
     $opt{cmp_ds} = $parent_ds if defined $parent_ds;
     my($value, $bool) = call('hunt', $filename, $datasource, %opt);
-    print "$value\n";
-    exit($bool ? 0 : 1);
+    print "$value\n" unless $quiet;
+    return $bool;
 }
 
 # Utilities functions
@@ -570,20 +663,20 @@ Syntax:
 
 rrdpoller [OPTIONS] list|ls <filename>
 
-rrdpoller [OPTIONS] get <filename> <datasource> --offset <time> --cf <func-name>
+rrdpoller [OPTIONS] get <filename> <datasource> offset=<time> cf=<func-name>
 
 rrdpoller [OPTIONS] exact <filename> <datasource> <value>
 
-rrdpoller [OPTIONS] boundaries <filename> <datasource> [--min <number>] [--max <number>]
+rrdpoller [OPTIONS] boundaries <filename> <datasource> [min=<number>] [max=<number>]
 
-rrdpoller [OPTIONS] relation <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
-  [--compare-ds <datasource>] [--offset <time>]
+rrdpoller [OPTIONS] relation <filename> <datasource> <[<|>]threshold[%]> [target=<filename>]
+  [compare-ds=<datasource>] [offset=<time>]
 
-rrdpoller [OPTIONS] quotient <filename> <datasource> <[<|>]threshold[%]> [--target <filename>]
-  [--target-ds <datasource>] [--offset <time>]
+rrdpoller [OPTIONS] quotient <filename> <datasource> <[<|>]threshold[%]> [target=<filename>]
+  [target-ds=<datasource>] [offset=<time>]
 
-rrdpoller [OPTIONS] hunt <filename> <datasource> <roll> [--target <filename>]
-  [--target-ds <datasource>]
+rrdpoller [OPTIONS] hunt <filename> <datasource> <roll> [target=<filename>]
+  [target-ds=<datasource>]
 
 OPTIONS:
 
