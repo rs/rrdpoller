@@ -1,0 +1,14 @@
+Source: librrd-threshold
+Section: net
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7)
+Maintainer: Olivier Poitrey <rs@mmania.com>
+Standards-Version: 3.6.1
+
+Package: librrd-threshold
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, liberror-perl (>= 0.15-5),
+ librrds-perl (>= 1.0.48-2)
+Description: Check for thresholds exceeding values in RRD files data
+ TODO
