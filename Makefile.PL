@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.8 2004/12/06 18:29:02 rs Exp $
+# $Id: Makefile.PL,v 1.9 2004/12/07 12:36:21 rs Exp $
 
 WriteMakefile
 (
@@ -17,14 +17,15 @@ WriteMakefile
  EXE_FILES       => [qw(rrdpoller)],
  PREREQ_PM       =>
  {
-  Error => '0.15',
-  RRDs  => '1.000481',
+  'Error'        => '0.15',
+  'RRDs'         => '1.000481',
+  'File::Temp'   => '',
  },
  AUTHOR          => 'Olivier Poitrey <rs@mmania.com>',
  dist            =>
  {
-  DIST_DEFAULT => 'README all checkout metafile sign tardist checkin',
-  COMPRESS => 'gzip -9f'
+  DIST_DEFAULT   => 'README all checkout metafile sign tardist checkin',
+  COMPRESS       => 'gzip -9f',
  }
 );
 
