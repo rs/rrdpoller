@@ -5,8 +5,8 @@ use Error;
 use RRD::Query;
 use RRD::Threshold;
 
-# $Id: rrdpoller,v 1.6 2004/12/06 10:58:42 rs Exp $
-$main::VERSION = "1.0.1";
+# $Id: rrdpoller,v 1.7 2004/12/06 18:21:11 rs Exp $
+$main::VERSION = "1.0.2";
 
 =pod
 
@@ -15,6 +15,8 @@ $main::VERSION = "1.0.1";
 rrdpoller - Retrieve RRD file data and apply some threshold algorithm
 
 =head1 SYNOPSIS
+
+B<rrdpoller> B<list|ls> I<filename>
 
 B<rrdpoller> B<get> I<filename> I<datasource> [B<--offset> I<time>]
 [B<--cf> I<func-name>]
@@ -53,6 +55,10 @@ just to let you figure out what you can do with each algorithm.
 
 =over 4
 
+=item B<rrdpoller> B<ls> host1-net.rrd
+
+Returns the whole list of datasources contained in the file.
+
 =item B<rrdpoller> B<get> host1-load.rrd 1min_avg
 
 Get the current value of the I<1min_avg> datasource of the
@@ -76,7 +82,7 @@ delta is greater than 100000.
 
 =item B<rrdpoller> B<quotient> host1-mem.rrd usage 90% B<--target-ds> total
 
-Compare the current I<usage> datasource of the I<host1-disk.rrd> file
+Compare the current I<usage> datasource of the I<host1-mem.rrd> file
 and divide it by the I<total> datasource of the same file. The command
 returns false if the obtained percentage is greater than I<90%>.
 
@@ -107,13 +113,17 @@ while(@ARGV)
 }
 
 my $command = shift(@argv) || usage();
-if($command !~ /^(get|exact|boundaries|relation|quotient|hunt)$/)
+if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
 {
     usage();
 }
 
 my $filename   = shift(@argv) || usage();
-my $datasource = shift(@argv) || usage();
+my $datasource;
+if($command ne 'list' and $command ne 'ls')
+{
+    $datasource = shift(@argv) || usage();
+}
 
 {
     no strict qw(refs);
@@ -125,10 +135,29 @@ my $datasource = shift(@argv) || usage();
 =head1 SUB-COMMANDS
 
 All sub-commands needs at least the too first arguments I<filename>
-and I<datasource>. Except for the B<get> command (which doesn't
-perform a test), all sub-command will change the rrdpoller return code
-to false (1) if the test fails. All sub-commands will print the given
-I<datasource> value of the given I<filename> on the standard output.
+and I<datasource> (except for list command). Except for the B<get> and
+B<list> commands (which doesn't perform a test), all sub-command will
+change the rrdpoller return code to false (1) if the test fails. All
+sub-commands will print the given I<datasource> value of the given
+I<filename> on the standard output.
+
+=head2 B<list|ls> I<filename>
+
+This command list all datasources of the given file.
+
+=cut
+
+sub ls {return list(@_)}
+sub list
+{
+    (@argv || %args) && usage();
+
+    my $rrd = new RRD::Query($filename);
+    my $list = $rrd->list();
+    print(join("\n", @$list), "\n");
+}
+
+=pod
 
 =head2 B<get> I<filename> I<datasource> B<[OPTIONS]>
 
@@ -428,6 +457,8 @@ sub usage
 {
     print STDERR <<EOT;
 Syntax:
+
+rrdpoller list|ls <filename>
 
 rrdpoller get <filename> <datasource> --offset <time> --cf <func-name>
 

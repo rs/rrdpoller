@@ -6,8 +6,8 @@ use Error qw(:try);
 use Exporter qw(import);
 @EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.6 2004/12/06 10:20:34 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.7 2004/12/06 18:21:20 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.7 $ =~ /(\d+)/g;
 
 =pod
 
@@ -38,6 +38,43 @@ sub new
 =pod
 
 =head1 METHODS
+
+
+=pod
+
+=head2 list
+
+    @datasources = list();
+
+Return the list of all datasource of the given file
+
+Throws:
+
+Error::RRDs - on RRDs library error
+
+=cut
+
+sub list
+{
+    my($self) = @_;
+
+    my $info = RRDs::info($self->{file});
+    if(RRDs::error())
+    {
+        throw Error::RRDs("Can't get RRD info: " . RRDs::error());
+    }
+
+    my %ds;
+    for my $key (keys %$info)
+    {
+        if(index($key, 'ds[') == 0)
+        {
+            $ds{substr($key, 3, index($key, ']') - 3)} = undef;
+        }
+    }
+
+    return([keys %ds]);
+}
 
 =head2 fetch
 
