@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# $Id: rrd.monitor,v 1.1 2005/02/07 10:47:48 rs Exp $
+# $Id: rrd.monitor,v 1.2 2005/02/18 10:53:41 rs Exp $
 #
 # This script is a monitor to use with the Mon monitoring tool.
 #
@@ -73,7 +73,7 @@ for my $host (@hosts)
     # resolv regular expressions
     for(@indexes)
     {
-        @args[$_->[0]] = h2f($_->[1]);
+        @args[$_->[0]] = h2f($_->[0], $_->[1]);
     }
     open(PROG, '-|', 'rrdpoller', @args) or do
     {
@@ -108,8 +108,8 @@ exit(scalar @errors);
 
 sub h2f
 {
-    my $h = shift();
-    eval('$h =~ '.$h2f_re);
+    my($h, $r) = @_;
+    eval('$h =~ '.$r);
     return $h;
 }
 
