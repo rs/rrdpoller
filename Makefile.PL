@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.15 2004/12/10 17:36:42 rs Exp $
+# $Id: Makefile.PL,v 1.16 2004/12/10 17:39:59 rs Exp $
 $| = 1;
 
 my $quiet    = grep(uc($_) eq 'QUIET', @ARGV);
@@ -21,12 +21,14 @@ OPTIONS:
     QUIET       This option removes all help text like this one.
     DEFAULTS    This option will choose all default values instead of
                 asking you when a choice is possible.
+
 EOT
     
+    my $answer;
     if(!$defaults)
     {
         print "Do you want to continue ? [Y/n]: ";
-        my $answer;
+        $answer = <STDIN>;
         chomp($answer);
         exit if($answer =~ /^n/i);
     }
@@ -35,11 +37,13 @@ EOT
 if(!eval {require RRDs; 1})
 {
     print <<EOT if not $quiet;
+
 The RRDs perl library seems not installed on your system. This module
 can't work without this library. You can download this library on the
 following URL: http://rrdtool.cs.pu.edu.tw/download.html. If you install
 this module anyway, it won't be usable until the RRDs library won't be
 installed.
+
 EOT
     my $answer = 'y';
     if(!$defaults)
@@ -56,10 +60,12 @@ my %OptionalModules;
 if(!$defaults)
 {
     print <<EOT if not $quiet;
+
 If you intend to use the network feature of rrdpoller, there is some
 additionnal module required. They aren't needed to use rrdpoller as a
 local only tool. If you don't want the installation process to complain
 about missing modules reply yes to this question.
+
 EOT
     print "Do you want to ignore modules dependancy for network feature [y/N]: ";
     $answer = <STDIN>;
