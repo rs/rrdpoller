@@ -1,10 +1,11 @@
 package RRD::Threshold;
 
+use strict;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.8 2004/12/06 10:21:25 rs Exp $
-$RRD::Threshold::VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)/g;
+# $Id: Threshold.pm,v 1.9 2004/12/07 12:53:56 rs Exp $
+$RRD::Threshold::VERSION = sprintf "%d.%03d", q$Revision: 1.9 $ =~ /(\d+)/g;
 
 =pod
 
@@ -45,6 +46,8 @@ This threshold takes too optional values, a minimum and a maximum
 value. If the data source strays outside of this interval, it returns
 false.
 
+=head3 Options
+
 =over 4
 
 =item rrdfile
@@ -53,7 +56,13 @@ The path to the RRD file
 
 =item ds
 
-The name of the data source
+The name of the datasource. If the datasource contains comat (,), your
+datasource will be interpreted as an RPN (Reverse Polish Notation)
+expression (see L<Math::RPN>). If the C<Math::RPN> module isn't
+loadable, an C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =item min
 
@@ -67,7 +76,7 @@ false.
 
 =back
 
-Throws:
+=head3 Throws
 
 =over 4
 
@@ -102,19 +111,9 @@ sub boundaries
     }
 
     my $value;
-    try
-    {
-        my $rrd = new RRD::Query($rrdfile);
-        $value = $rrd->fetch($ds);
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    };
+    my $rrd = new RRD::Query($rrdfile);
+    $value = $rrd->fetch($ds);
+
     if(isNaN($value))
     {
         throw Error::RRD::isNaN("Current value is NaN");
@@ -146,6 +145,8 @@ requires attention. For example, a datasource might return either
 true(1) or false(2), depending on whether or not a power supply has
 failed.
 
+=head3 Options
+
 =over 4
 
 =item rrdfile
@@ -154,7 +155,13 @@ The path to the RRD file
 
 =item ds
 
-The name of the data source
+The name of the datasource. If the datasource contains comat (,), your
+datasource will be interpreted as an RPN (Reverse Polish Notation)
+expression (see L<Math::RPN>). If the C<Math::RPN> module isn't
+loadable, an C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =item exact
 
@@ -163,7 +170,7 @@ will return false.
 
 =back
 
-Throws:
+=head3 Throws
 
 =over 4
 
@@ -196,20 +203,9 @@ sub exact
         throw Error::InvalidArgument("Missing mandatory option: exact");
     }
 
-    my $value;
-    try
-    {
-        my $rrd = new RRD::Query($rrdfile);
-        $value = $rrd->fetch($ds);
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    };
+    my $rrd = new RRD::Query($rrdfile);
+    my $value = $rrd->fetch($ds);
+
     if(isNaN($value))
     {
         throw Error::RRD::isNaN("Current value is NaN");
@@ -238,6 +234,8 @@ than (<) operator. The criteria fails when the expression (<absolute
 or relative difference> <either greater-than or less-than>
 <threshold>) evaluates to false.
 
+=head3 Options
+
 =over 4
 
 =item rrdfile
@@ -246,8 +244,14 @@ The path of the base RRD file.
 
 =item ds
 
-The name of the base data source. The data source must belong to the
-$rrdfile.
+The name of the base datasource. The data source must belong to the
+$rrdfile. If the datasource contains comat (,), your datasource will
+be interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =item threadhold
 
@@ -268,7 +272,15 @@ The name of the comparison data source. This data source must belong
 to the comparison RRD file. This argument is optional and if omitted
 the first data source name is also taken as the comparison data source
 name.  If the value is a number, the value is considered as a fix
-value and is taked for the comparison
+value and is taked for the comparison.
+
+If the datasource contains comat (,), your datasource will be
+interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>, C<10023>, C<-243.23>.
 
 =item cmp_time
 
@@ -279,7 +291,7 @@ argument is optional and if omitted, it is set to 0.
 
 =back
 
-Throws:
+=head3 Throws
 
 =over 4
 
@@ -305,27 +317,7 @@ if the given datasource can't be found in the RRD file
 
 sub relation
 {
-    my($self, @args) = @_;
-    try
-    {
-        $self->_relation(0, @args);
-    }
-    catch Error::InvalidArgument with
-    {
-        shift->throw();
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::isNaN with
-    {
-        shift->throw();
-    };
+    shift->_relation(0, @_);
 }
 
 =pod
@@ -348,6 +340,8 @@ less than (<) operator. The criteria fails when the expression
 (<percentage> <either greater-than or less-than> <threshold>)
 evaluates to false.
 
+=head3 Options
+
 =over 4
 
 =item rrdfile
@@ -356,8 +350,14 @@ The path of the base RRD file.
 
 =item ds
 
-The name of the base data source. The data source must belong to the
-$rrdfile.
+The name of the base datasource. The data source must belong to the
+$rrdfile. If the datasource contains comat (,), your datasource will
+be interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =item threadhold
 
@@ -376,9 +376,17 @@ omitted the first RRD file is also taken as the comparison target.
 
 The name of the comparison data source. This data source must belong
 to the comparison RRD file. This argument is optional and if omitted
-the monitor threshold data source name is also taken as the comparison
-data source name. If the value is a number, the value is taken as-is
-to do the comparison.
+the first data source name is also taken as the comparison data source
+name.  If the value is a number, the value is considered as a fix
+value and is taked for the comparison.
+
+If the datasource contains comat (,), your datasource will be
+interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>, C<10023>, C<-243.23>.
 
 =item cmp_time
 
@@ -389,7 +397,7 @@ argument is optional and if omitted, it is set to 0.
 
 =back
 
-Throws:
+=head3 Throws
 
 =over 4
 
@@ -415,28 +423,7 @@ if the given datasource can't be found in the RRD file
 
 sub quotient
 {
-    my($self, @args) = @_;
-
-    try
-    {
-        $self->_relation(1, @args);
-    }
-    catch Error::InvalidArgument with
-    {
-        shift->throw();
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::isNaN with
-    {
-        shift->throw();
-    };
+    shift->_relation(1, @_);
 }
 
 sub _relation
@@ -465,20 +452,9 @@ sub _relation
     $cmp_ds ||= $ds;
     $cmp_time ||= 0;
 
-    my $value;
-    try
-    {
-        my $rrd = new RRD::Query($rrdfile);
-        $value = $rrd->fetch($ds);
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    };
+    my $rrd = new RRD::Query($rrdfile);
+    my $value = $rrd->fetch($ds);
+
     if(isNaN($value))
     {
         throw Error::Simple("Current value is NaN");
@@ -493,19 +469,9 @@ sub _relation
     }
     else
     {
-        try
-        {
-            my $rrd = new RRD::Query($cmp_rrdfile);
-            $cmp_value = $rrd->fetch($cmp_ds, cf => 'AVERAGE', offset => $cmp_time);
-        }
-        catch Error::RRDs with
-        {
-            shift->throw();
-        }
-        catch Error::RRD::NoSuchDS with
-        {
-            shift->thow();
-        };
+        my $rrd = new RRD::Query($cmp_rrdfile);
+        $cmp_value = $rrd->fetch($cmp_ds, cf => 'AVERAGE', offset => $cmp_time);
+
         if(isNaN($cmp_value))
         {
             throw Error::RRD::isNaN("Comparison value is NaN");
@@ -568,6 +534,8 @@ criteria of the hunt monitor threshold fails if the value of the
 monitored data source is non-zero and the current value of the parent
 data source falls below a specified capacity threshold.
 
+=head3 Option
+
 =over 4
 
 =item rrdfile
@@ -576,8 +544,14 @@ The path of the base RRD file.
 
 =item ds
 
-The name of the base data source. The data source must belong to the
-$rrdfile.
+The name of the base datasource. The data source must belong to the
+$rrdfile. If the datasource contains comat (,), your datasource will
+be interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =item roll
 
@@ -591,13 +565,22 @@ omitted the base RRD file is also taken as the parent.
 
 =item cmp_ds
 
-The name of the parent data source. This data source must belong to
-the parent RRD file. This argument is optional and if omitted the base
-data source name is also take as the comparison data source name.
+The name of the comparison data source. This data source must belong
+to the parent RRD file. This argument is optional and if omitted the
+first data source name is also taken as the comparison data source
+name.
+
+If the datasource contains comat (,), your datasource will be
+interpreted as an RPN (Reverse Polish Notation) expression (see
+L<Math::RPN>). If the C<Math::RPN> module isn't loadable, an
+C<Error::RRD::Feature> exception is thrown.
+
+Some valide examples of datasource would be: C<ifError>,
+C<high_mem,low_mem,+>.
 
 =back
 
-Throws:
+=head3 Throws
 
 =over 4
 
@@ -634,20 +617,9 @@ sub hunt
     my $cmp_rrdfile ||= $rrdfile;
     my $cmp_ds ||= $ds;
 
-    my $value;
-    try
-    {
-        my $rrd = new RRD::Query($rrdfile);
-        $value = $rrd->fetch($ds);
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    };
+    my $rrd = new RRD::Query($rrdfile);
+    my $value = $rrd->fetch($ds);
+
     if(isNaN($value))
     {
         throw Error::RDD::isNaN("Current value is NaN");
@@ -659,20 +631,8 @@ sub hunt
         return($value, 1);
     }
 
-    my $cmp_value;
-    try
-    {
-        my $rrd = new RRD::Query($cmp_rrdfile);
-        $cmp_value = $rrd->fetch($cmp_ds);
-    }
-    catch Error::RRDs with
-    {
-        shift->throw();
-    }
-    catch Error::RRD::NoSuchDS with
-    {
-        shift->throw();
-    };
+    my $rrd = new RRD::Query($cmp_rrdfile);
+    my $cmp_value = $rrd->fetch($cmp_ds);
 
     if(isNaN($cmp_value))
     {
