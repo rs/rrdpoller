@@ -22,7 +22,7 @@ SHA1 53d39ec1b77976be2ef38d9c7928a26b197287cb Query.pm
 SHA1 c873f4a7e285ffd280ea0ba386000e7a1c547045 README
 SHA1 f3b57e38719a8803ee05833c6e71a7f0a7fe5c6c TODO
 SHA1 08a2e3b0b765183d58194dbc17a246b35437c6de Threshold.pm
-SHA1 7a0b1261d2639898f98d61c9dab79fb212c55eb2 debian/changelog
+SHA1 eb62b92c0013cac84a970431f4ab69c7f6d8b634 debian/changelog
 SHA1 0fd6727442a938ae6c7fc7ed454cb4fb1f9615ee debian/control
 SHA1 9dfd55f1b37cb4d3d17ef174c83c7658306da11e debian/librrd-threshold-perl.copyright
 SHA1 6906bdbb31af659bf76149ae912b5b6b08e9b5ea debian/rrdpoller.copyright
@@ -32,7 +32,7 @@ SHA1 dda8d9d999c4dedb0089159008d4377b55bc9858 test.pl
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBtKLTg72S1jnCT0ERAuKhAJkBPH8Sw/kSMaqtwyKRvQXBbJTiaQCgi7kT
-285lM8RUwSdaroeR7uesGhs=
-=t3zN
+iD8DBQFBtKLyg72S1jnCT0ERAgqYAJ9QcgopAvoQ7c5mo1G3MDpHCIjPdACgghFT
+BAw89Ttz96Na3tc8Mclf4Kg=
+=8sB+
 -----END PGP SIGNATURE-----
