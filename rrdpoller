@@ -1,0 +1,131 @@
+#!/usr/bin/perl
+
+use strict;
+use Error;
+use RRD::Query;
+use RRD::Threshold;
+
+=pod
+
+=head1 SYNOPSYS
+
+B<rrdpoller> B<get> I<filename> I<datasource> [B<--offset> I<offset>]
+[B<--cf> I<consolidation-function>]
+
+B<rrdpoller> B<exact> I<filename> I<datasource> I<value>
+
+B<rrdpoller> B<boundaries> I<filename> I<datasource> [B<--min> I<min>]
+[B<--max> I<max>]
+
+B<rrdpoller> B<relation> I<filename> I<datasource> I<threshold>
+[B<--target> I<filename>] [B<--compare-ds> I<datasource>] [B<--offset> I<offset>]
+
+B<rrdpoller> B<quotient> I<filename> I<datasource> I<threshold>
+[B<--target> I<filename>] [B<--target-ds> I<datasource>] [B<--offset> I<offset>]
+
+B<rrdpoller> B<hunt> I<filename> I<datasource> I<hunt> [B<--target> I<filename>]
+[B<--target-ds> I<datasource>] [B<--offset> I<offset>]
+
+=cut
+
+my %args;
+my @argv;
+my $_arg;
+while(@ARGV)
+{
+    $_arg = shift;
+    if(index($_arg, '--') == 0)
+    {
+        $args{substr($_arg, 2)} = shift || usage();
+    }
+    else
+    {
+        push(@argv, $_arg);
+    }
+}
+
+my $command = shift(@argv) || usage();
+if($command !~ /^(get|exact|boundaries|relation|quotient|hunt)$/)
+{
+    usage();
+}
+
+my $filename   = shift(@argv) || usage();
+my $datasource = shift(@argv) || usage();
+
+{
+    no strict qw(refs);
+    &{$command};
+}
+
+sub get
+{
+    my $offset = delete($args{offset}) || 0;
+    my $cf = delete($args{cf});
+    (@argv || %args) && usage();
+
+    my $rrd = new RRD::Query($filename);
+    my $value = $rrd->fetch($datasource, offset => $offset, cf => $cf);
+    print "$value\n";
+}
+
+sub exact
+{
+    my $exact = shift(@argv);
+    (@argv || %args) && usage();
+
+    my $rt = new RRD::Threshold();
+    my($value, $bool) = $rt->exact($filename, $datasource, $exact);
+    print "$value\n";
+    exit($bool ? 0 : 1);
+}
+
+sub boundaries
+{
+    my $min = delete($args{min});
+    my $max = delete($args{max});
+    (@argv || %args) && usage();
+
+    my %minmax;
+    $minmax{min} = $min if defined $min;
+    $minmax{max} = $max if defined $max;
+    my $rt = new RRD::Threshold();
+    my($value, $bool) = $rt->boundaries($filename, $datasource, %minmax);
+    print "$value\n";
+    exit($bool ? 0 : 1);
+}
+
+sub relation
+{
+}
+
+sub quotient
+{
+}
+
+sub hunt
+{
+}
+
+sub usage
+{
+    print STDERR <<EOT;
+Syntax:
+
+rrdpoller get <filename> <datasource>
+
+rrdpoller exact <filename> <datasource> <value>
+
+rrdpoller boundaries <filename> <datasource> [--min <min>] [--max <max>]
+
+rrdpoller relation <filename> <datasource> <threshold> [--target <filename>]
+  [--compare-ds <datasource>] [--offset <offset>]
+
+rrdpoller quotient <filename> <datasource> <threshold> [--target <filename>]
+  [--target-ds <datasource>] [--offset <offset>]
+
+rrdpoller hunt <filename> <datasource> <hunt> [--target <filename>]
+  [--target-ds <datasource>] [--offset <offset>]
+EOT
+    exit;
+}
