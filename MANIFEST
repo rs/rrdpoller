@@ -1,10 +1,12 @@
 Makefile.PL
 README
 INSTALL
+SIGNATURE
 Threshold.pm
 Query.pm
 debian/control
-debian/copyright
+debian/rrdpoller.copyright
+debian/librrd-threshold-perl.copyright
 debian/rules
 debian/changelog
 test.pl

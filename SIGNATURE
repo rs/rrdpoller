@@ -1,0 +1,36 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.35.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It would check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 f0ef62df3cf5217337211cb28ece53d33e2041e1 INSTALL
+SHA1 33cd90066582d6884abcda0d0d1a3bdd826184b1 META.yml
+SHA1 c16d5d7025b9eeccd2f89ebac93d759b77d349ee Makefile.PL
+SHA1 be5acf4044b62792d5e468f29d01bf32c037ade4 Query.pm
+SHA1 38224d6e956a95cfa040072882424ba06a95b398 README
+SHA1 08a2e3b0b765183d58194dbc17a246b35437c6de Threshold.pm
+SHA1 20215a263397349d70285a3710406e307e0a6a97 debian/changelog
+SHA1 31c016887a27c0abb2abf57bba5fb389c5b1e94b debian/control
+SHA1 9dfd55f1b37cb4d3d17ef174c83c7658306da11e debian/librrd-threshold-perl.copyright
+SHA1 6906bdbb31af659bf76149ae912b5b6b08e9b5ea debian/rrdpoller.copyright
+SHA1 571fcd741c123d95c8db3849efd8d870bb44c252 debian/rules
+SHA1 1aa1730c7c3f426e68768e60ef21a09be3c95693 rrdpoller
+SHA1 297cee77537f8e93385a2f8e6e2ca079fdd84d40 test.pl
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBtDUgg72S1jnCT0ERAiE4AJ9/EgvLx7a7YAnuvBeMhRSRL/QPfACeMbdC
+CHF6a7Rw+KkiQh/ntK7kO0s=
+=2jca
+-----END PGP SIGNATURE-----
