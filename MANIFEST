@@ -13,4 +13,5 @@ debian/rules
 debian/changelog
 test.pl
 rrdpoller
+rrdpollerd
 META.yml                                 Module meta-data (added by MakeMaker)
