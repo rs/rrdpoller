@@ -3,7 +3,7 @@
 name:         rrdpoller
 version:      1.0.1
 version_from: rrdpoller
-installdirs:  site
+installdirs:  vendor
 requires:
     Error:                         0.15
     RRDs:                          1.000481
