@@ -1,7 +1,7 @@
 use strict;
 use ExtUtils::MakeMaker;
 
-# $Id: Makefile.PL,v 1.7 2004/12/06 12:33:30 rs Exp $
+# $Id: Makefile.PL,v 1.8 2004/12/06 18:29:02 rs Exp $
 
 WriteMakefile
 (
@@ -44,10 +44,10 @@ README: rrdpoller Makefile
 	pod2text rrdpoller > $@
 
 checkout ::
-	cvs up META.yml SIGNATURE
+	cvs up META.yml SIGNATURE README
 
 checkin ::
-	cvs ci -m 'new release' META.yml SIGNATURE
+	cvs ci -m 'new release' META.yml SIGNATURE README
 
 sign ::
 	cpansign -s
