@@ -33,23 +33,27 @@ sub new
 
 =head2 fetch
 
-    ($value) = fetch($ds, $offset)
+    ($value) = fetch($ds, cf => $cf, offset => $offset)
 
 Fetch a single value from the datasource $ds of RRD file. If $offset
 is omitted, the last inserted value is returned, otherwise the last
-value - $offset is returned.
+value - $offset is returned. If $cf (consolidation function) is
+omited, AVERAGE is used.
 
 Throws:
 
 Error::RRDs - on RRDs library error
 
+Error::RRD::NoSuchDS - if datasource can't be found in RRD file
+
 =cut
 
 sub fetch
 {
-    my($self, $ds, $offset) = @_;
+    my($self, $ds, %args) = @_;
 
-    $offset ||= 0;
+    $args{offset} ||= 0;
+    $args{cf}     ||= 'AVERAGE';
 
     my $last;
     try
@@ -61,12 +65,12 @@ sub fetch
         shift->throw();
     };
 
-    my($start, $end, $step, $rows, $legend, $data) = RRDs::xport
+    my($start, $step, $names, $data) = RRDs::fetch
     (
-        '--start' => "$last - $offset",
-        '--end'   => "$last - $offset",
-        "DEF:a=:" . $self->{file} . ":$ds:AVERAGE",
-        "XPORT:a"
+     $self->{file},
+     $args{cf},
+     '--start' => "$last - $args{offset}",
+     '--end'   => "$last - $args{offset}",
     );
     if(RRDs::error())
     {
@@ -74,7 +78,22 @@ sub fetch
                           -object => 'RRDs');
     }
 
-    return($data->[0]->[0]);
+    # get DS id
+    my $value;
+    for(my $i = 0; $i < @$names; $i++)
+    {
+        if($names->[$i] eq $ds)
+        {
+            $value = $data->[0]->[$i];
+        }
+    }
+
+    if(!defined($value))
+    {
+        throw Error::RRD::NoSuchDS("Can't find datasource in RRD");
+    }
+
+    return $value;
 }
 
 =pod
@@ -105,6 +124,25 @@ sub get_last
     return $last;
 }
 
+sub get_step
+{
+    my($self) = @_;
+
+    if(!defined $self->{step})
+    {
+        my $info = RRDs::info($self->{file});
+        if(RRDs::error())
+        {
+            throw Error::RRDs("Can't get step: " . RRDs::error(),
+                              -object => 'RRDs');
+        }
+
+        $self->{step} = $info->{step};
+    }
+
+    return $self->{step};
+}
+
 =pod
 
 =head1 EXPORTS
@@ -124,6 +162,10 @@ sub isNaN
 }
 
 package Error::RRDs;
+
+use base qw(Error::Simple);
+
+package Error::RRD::NoSuchDS;
 
 use base qw(Error::Simple);
 
