@@ -21,7 +21,12 @@ _to_
 
 # debian specific
 -stamp$
-^debian\/
+^debian\/files$
+^debian\/rrdpoller\/
+^debian\/rrdpoller.substvars$
+^debian\/substvars$
+^debian\/tmp\/
+
 
 # dists
 ^rrdpoller-[\d.]+\.tar\.gz$
