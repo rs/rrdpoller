@@ -1,3 +1,15 @@
+rrdpoller (1.5.0) unstable; urgency=low
+
+  * version 1.5.0
+  * added the --quiet option
+  * added the --lazy option
+  * changed the syntax of sub-commands arguments, can now be express as
+    key=value instead of --key value
+  * added the ability to chain sub-commands with special keywords `or' and `and'
+  * documentation update
+
+ -- Olivier Poitrey <rs@rhapsodyk.net>  Wed, 28 Feb 2005 18:34:33 +0100
+
 rrdpoller (1.3.2) unstable; urgency=low
 
   * Fix a bug in RPN handling that prevent usage of offset with RPN
