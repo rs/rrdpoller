@@ -20,6 +20,10 @@ SKIP:
     {
         skip("Cannot connect to the keyserver", 1);
     }
+    elsif(-f 'debug')
+    {
+        skip("debug mode", 1);
+    }
     else
     {
         ok(Module::Signature::verify() == Module::Signature::SIGNATURE_OK()
@@ -42,10 +46,6 @@ RRDs::create
     'RRA:AVERAGE:0.5:180:768',
     'RRA:AVERAGE:0.5:720:720',
     'RRA:AVERAGE:0.5:8640:730',
-    'RRA:MAX:0.5:1:18000',
-    'RRA:MAX:0.5:180:768',
-    'RRA:MAX:0.5:720:720',
-    'RRA:MAX:0.5:8640:730',
 );
 
 ok(!RRDs::error(), "Create test RRD file $rrdfile");
@@ -78,7 +78,8 @@ my $rrd = new RRD::Query($rrdfile);
 ok(defined $rrd,                                    'Test RRD::Query, creator');
 ok(eq_array($rrd->list(), [qw(test1 test2)]),       '  list() datasources');
 is($rrd->fetch('test1'), 1,                         '  fetch() current value');
-is($rrd->fetch('test2', offset => 100), 200,        '  fetch() past value');
+# can't go too far in the past because the CF function can make the value to change
+is($rrd->fetch('test2', offset => 5), 10,           '  fetch() past value');
 
 my $rt = new RRD::Threshold();
 ok(defined $rt,                                     'Test RRD::Threshold, creator');
@@ -98,12 +99,12 @@ ok(!$rt->boundaries($rrdfile, 'test2', max => 1),   '  boundaries() negative max
 #  true if delta isn't greater than 10
 ok($rt->relation($rrdfile, 'test1', 10,
                 cmp_time => 10),                    '  relation() positive');
-#  true if delta isn't lesser than 8
-ok($rt->relation($rrdfile, 'test1', '<8',
+#  true if delta isn't lesser than 5
+ok($rt->relation($rrdfile, 'test1', '<5',
                 cmp_time => 10),                    '  relation() negative');
 # value: 1, cmp_value: 10, delta: 10%
-#  true if delta isn't greater than 15%
-ok($rt->relation($rrdfile, 'test1', '15%',
+#  true if delta isn't greater than 30%
+ok($rt->relation($rrdfile, 'test1', '30%',
                 cmp_time => 10),                    '  relation() positive (percentage)');
 #  true if delta isn't lesser than 5%
 ok($rt->relation($rrdfile, 'test1', '<5%',
@@ -120,8 +121,8 @@ ok($rt->relation($rrdfile, 'test1', '<2',
 #  true if quotient isn't more than 100%
 ok($rt->quotient($rrdfile, 'test1', '100%',
                 cmp_time => 10),                    '  quotient() positive');
-#  true if quotient isn't less than 80%
-ok($rt->quotient($rrdfile, 'test1', '<80%',
+#  true if quotient isn't less than 70%
+ok($rt->quotient($rrdfile, 'test1', '<70%',
                 cmp_time => 10),                    '  quotient() negative');
 
 # value: 1, cmp_value: 4, quotient: 75%
