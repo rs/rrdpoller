@@ -2,11 +2,9 @@
 
 use strict;
 use Error qw(:try);
-use RRD::Query;
-use RRD::Threshold;
 
-# $Id: rrdpoller,v 1.10 2004/12/08 01:13:42 rs Exp $
-$main::VERSION = "1.1.1";
+# $Id: rrdpoller,v 1.11 2004/12/10 17:35:52 rs Exp $
+$main::VERSION = "1.2.0";
 
 =pod
 
@@ -16,23 +14,23 @@ rrdpoller - Retrieve RRD file data and apply some threshold algorithm
 
 =head1 SYNOPSIS
 
-B<rrdpoller> B<list|ls> I<filename>
+B<rrdpoller> [B<OPTIONS>] B<list|ls> I<filename>
 
-B<rrdpoller> B<get> I<filename> I<datasource> [B<--offset> I<time>]
+B<rrdpoller> [B<OPTIONS>] B<get> I<filename> I<datasource> [B<--offset> I<time>]
 [B<--cf> I<func-name>]
 
-B<rrdpoller> B<exact> I<filename> I<datasource> I<value>
+B<rrdpoller> [B<OPTIONS>] B<exact> I<filename> I<datasource> I<value>
 
-B<rrdpoller> B<boundaries> I<filename> I<datasource> [B<--min> I<number>]
+B<rrdpoller> [B<OPTIONS>] B<boundaries> I<filename> I<datasource> [B<--min> I<number>]
 [B<--max> I<number>]
 
-B<rrdpoller> B<relation> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
+B<rrdpoller> [B<OPTIONS>] B<relation> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
 [B<--target> I<filename>] [B<--compare-ds> I<datasource>] [B<--offset> I<time>]
 
-B<rrdpoller> B<quotient> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
+B<rrdpoller> [B<OPTIONS>] B<quotient> I<filename> I<datasource> [I<E<lt>>|I<E<gt>>]I<threshold>[I<%>]
 [B<--target> I<filename>] [B<--target-ds> I<datasource>] [B<--offset> I<time>]
 
-B<rrdpoller> B<hunt> I<filename> I<datasource> I<roll> [B<--parent> I<filename>]
+B<rrdpoller> [B<OPTIONS>] B<hunt> I<filename> I<datasource> I<roll> [B<--parent> I<filename>]
 [B<--parent-ds> I<datasource>]
 
 =head1 DESCRIPTION
@@ -63,6 +61,10 @@ Returns the whole list of datasources contained in the file.
 
 Get the current value of the I<1min_avg> datasource of the
 I<host1-load.rrd> file.
+
+=item B<rrdpoller> B<--proxy> http://xmlrpc.monserver.com:8080/ B<get> host1-load.rrd 1min_avg
+
+Same as precedent but querying a remove daemon (see L<rrdpollerd>).
 
 =item B<rrdpoller> B<exact> host1-service.rrd http 1
 
@@ -101,6 +103,14 @@ computation.
 
 =back
 
+=head1 COMMON OPTIONS
+
+=head2 B<--proxy> I<URL>
+
+I you use this option, the rrdpoller command will turn into an XML-RPC
+client and will ask send all RRD queries to a remote rrdpoller daemon
+(see L<rrdpollerd> for more information).
+
 =cut
 
 my %args;
@@ -119,6 +129,8 @@ while(@ARGV)
     }
 }
 
+my $proxy = delete($args{proxy});
+
 my $command = shift(@argv) || usage();
 if($command !~ /^(list|ls|get|exact|boundaries|relation|quotient|hunt)$/)
 {
@@ -131,6 +143,9 @@ if($command ne 'list' and $command ne 'ls')
 {
     $datasource = shift(@argv) || usage();
 }
+
+# let us to cache the Error::RRD::Feature even if not loaded
+push(@Error::RRD::Feature::ISA, 'Error::Simple');
 
 {
     no strict qw(refs);
@@ -171,8 +186,7 @@ sub list
 {
     (@argv || %args) && usage();
 
-    my $rrd = new RRD::Query($filename);
-    my $list = $rrd->list();
+    my($list) = call('list', $filename);
     print(join("\n", @$list), "\n");
 }
 
@@ -211,8 +225,7 @@ sub get
     my $cf = delete($args{cf});
     (@argv || %args) && usage();
 
-    my $rrd = new RRD::Query($filename);
-    my $value = $rrd->fetch($datasource, offset => $offset, cf => $cf);
+    my($value) = call('fetch', $filename, $datasource, offset => $offset, cf => $cf);
     print "$value\n";
 }
 
@@ -234,8 +247,7 @@ sub exact
     my $exact = shift(@argv);
     (@argv || %args) && usage();
 
-    my $rt = new RRD::Threshold();
-    my($value, $bool) = $rt->exact($filename, $datasource, $exact);
+    my($value, $bool) = call('exact', $filename, $datasource, $exact);
     print "$value\n";
     exit($bool ? 0 : 1);
 }
@@ -273,8 +285,7 @@ sub boundaries
     my %opt;
     $opt{min} = $min if defined $min;
     $opt{max} = $max if defined $max;
-    my $rt = new RRD::Threshold();
-    my($value, $bool) = $rt->boundaries($filename, $datasource, %opt);
+    my($value, $bool) = call('boundaries', $filename, $datasource, %opt);
     print "$value\n";
     exit($bool ? 0 : 1);
 }
@@ -342,8 +353,7 @@ sub relation
     $opt{cmp_rrdfile} = $target_file if defined $target_file;
     $opt{cmp_ds} = $target_ds if defined $target_ds;
     $opt{offset} = $offset if defined $offset;
-    my $rt = new RRD::Threshold();
-    my($value, $bool) = $rt->relation($filename, $datasource, $threshold, %opt);
+    my($value, $bool) = call('relation', $filename, $datasource, $threshold, %opt);
     print "$value\n";
     exit($bool ? 0 : 1);
 }
@@ -411,8 +421,7 @@ sub quotient
     $opt{cmp_rrdfile} = $target_file if defined $target_file;
     $opt{cmp_ds} = $target_ds if defined $target_ds;
     $opt{offset} = $offset if defined $offset;
-    my $rt = new RRD::Threshold();
-    my($value, $bool) = $rt->quotient($filename, $datasource, $threshold, %opt);
+    my($value, $bool) = call('quotient', $filename, $datasource, $threshold, %opt);
     print "$value\n";
     exit($bool ? 0 : 1);
 }
@@ -466,10 +475,75 @@ sub hunt
     my %opt;
     $opt{cmp_rrdfile} = $parent_file if defined $parent_file;
     $opt{cmp_ds} = $parent_ds if defined $parent_ds;
-    my $rt = new RRD::Threshold();
-    my($value, $bool) = $rt->hunt($filename, $datasource, %opt);
+    my($value, $bool) = call('hunt', $filename, $datasource, %opt);
     print "$value\n";
     exit($bool ? 0 : 1);
+}
+
+# Utilities functions
+
+sub call
+{
+    my($method, @args) = @_;
+
+    if(defined $proxy)
+    {
+        return _remote_call($method, @args);
+    }
+    elsif(grep($_ eq $method, qw(list fetch)))
+    {
+        if(!eval {require RRD::Query; 1})
+        {
+            print(STDERR "Can't load RRD::Query module\n");
+            exit 225;
+        }
+        my $rrd = RRD::Query(shift(@args));
+        return $rrd->$method(@args);
+    }
+    else
+    {
+        if(!eval {require RRD::Threshold; 1})
+        {
+            print(STDERR "Can't load RRD::Threshold module\n");
+            exit 225;
+        }
+        my $rt = new RRD::Threshold();
+        return $rt->$method(@args);
+    }
+}
+
+sub _remote_call
+{
+    if(!eval {require XMLRPC::Lite; 1})
+    {
+        print(STDERR "Can't load XMLRPC::Lite module\n");
+        exit 225;
+    }
+
+    my $result = XMLRPC::Lite->proxy($proxy)->call(@_)->result();
+
+    unless(defined $result)
+    {
+        print(STDERR "Remote method call failed\n");
+        exit 225;
+    }
+
+    if($result->{success})
+    {
+        use Data::Dumper;
+        return(@{$result->{value}});
+    }
+    else
+    {
+        if($result->{error}->{class} ne 'Error::Simple')
+        {
+            # GRUIG! behave like an Error::* object even if not loaded
+            no strict qw(refs);
+            push(@{$result->{error}->{class} . "::ISA"}, 'Error::Simple');
+        }
+        my $error = bless($result->{error}->{content}, $result->{error}->{class});
+        $error->throw();
+    }
 }
 
 sub usage
@@ -543,6 +617,6 @@ USA
 
 =head1 SEE ALSO
 
-L<RRD::Query>, L<RRD::Threshold>, L<rrdtool>, L<RRDs>
+L<RRD::Query>, L<RRD::Threshold>, L<rrdtool>, L<RRDs>, L<rrdpollerd>
 
 =cut
