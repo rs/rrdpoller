@@ -3,8 +3,8 @@ package RRD::Threshold;
 use RRD::Query qw(isNaN);
 use Error qw(:try);
 
-# $Id: Threshold.pm,v 1.7 2004/12/03 18:14:47 rs Exp $
-$RRD::Threshold::VERSION = "1.0.0";
+# $Id: Threshold.pm,v 1.8 2004/12/06 10:21:25 rs Exp $
+$RRD::Threshold::VERSION = sprintf "%d.%03d", q$Revision: 1.8 $ =~ /(\d+)/g;
 
 =pod
 
@@ -14,7 +14,10 @@ RRD::Threshold - Check for thresholds exceeding values in RRD files data
 
 =head1 DESCRIPTION
 
-TODO
+This Perl module is capable of extracting some RRD information and to
+detect if the current value of a datasource is exeeding some
+thresholds using different algorithms and the help of past values of
+the same or other datasource.
 
 =head1 CONSTRUCTOR
 
@@ -68,7 +71,7 @@ Throws:
 
 =over 4
 
-=item Error::Argument
+=item Error::InvalidArgument
 
 If min is greater than max
 
@@ -95,7 +98,7 @@ sub boundaries
 
     if(defined $min and defined $max && $min > $max)
     {
-        throw Error::Argument("Min can't be greater than max value");
+        throw Error::InvalidArgument("Min can't be greater than max value");
     }
 
     my $value;
@@ -164,7 +167,7 @@ Throws:
 
 =over 4
 
-=item Error::Argument
+=item Error::InvalidArgument
 
 if exact argument isn't given
 
@@ -190,7 +193,7 @@ sub exact
 
     if(!defined($exact))
     {
-        throw Error::Argument("Missing mandatory option: exact");
+        throw Error::InvalidArgument("Missing mandatory option: exact");
     }
 
     my $value;
@@ -280,7 +283,7 @@ Throws:
 
 =over 4
 
-=item Error::Argument
+=item Error::InvalidArgument
 
 on argument error
 
@@ -307,7 +310,7 @@ sub relation
     {
         $self->_relation(0, @args);
     }
-    catch Error::Argument with
+    catch Error::InvalidArgument with
     {
         shift->throw();
     }
@@ -390,7 +393,7 @@ Throws:
 
 =over 4
 
-=item Error::Argument
+=item Error::InvalidArgument
 
 on argument error
 
@@ -418,7 +421,7 @@ sub quotient
     {
         $self->_relation(1, @args);
     }
-    catch Error::Argument with
+    catch Error::InvalidArgument with
     {
         shift->throw();
     }
@@ -444,7 +447,7 @@ sub _relation
 
     if(!defined($threshold) || !($threshold =~ s/^([<>]?)\s*(\d+)\s*(%?)$/$2/))
     {
-        throw Error::Argument("Threshold argument syntax error: $threshold");
+        throw Error::InvalidArgument("Threshold argument syntax error: $threshold");
     }
 
     my $cmp = $1 || '>';
@@ -454,7 +457,7 @@ sub _relation
     {
         if(!$pct)
         {
-            throw Error::Argument("Threshold have to be a percentage");
+            throw Error::InvalidArgument("Threshold have to be a percentage");
         }
     }
 
@@ -598,7 +601,7 @@ Throws:
 
 =over 4
 
-=item Error::Argument
+=item Error::InvalidArgument
 
 if roll argument isn't given
 
@@ -625,7 +628,7 @@ sub hunt
 
     if(!defined($roll))
     {
-        throw Error::Argument("Missing mandatory option: roll");
+        throw Error::InvalidArgument("Missing mandatory option: roll");
     }
 
     my $cmp_rrdfile ||= $rrdfile;
@@ -693,8 +696,49 @@ sub failure
 {
 }
 
-package Error::Argument;
+=pod
+
+=head1 EXCEPTIONS CLASSES
+
+=head2 Error::InvalidArgument
+
+=cut
+
+package Error::InvalidArgument;
 
 use base qw(Error::Simple);
+
+=pod
+
+=head1 AUTHOR
+
+Olivier Poitrey E<lt>rs@rhapsodyk.netE<gt>
+
+=head1 LICENCE
+
+RRD::Threshold, checks for thresholds exceeding values in RRD files
+data.
+Copyright (C) 2004  Olivier Poitrey
+
+This library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA
+
+=head1 SEE ALSO
+
+L<RRDs>, L<rrdgraph>, L<RRD::Query>, L<Error>
+
+=cut
 
 1;
