@@ -47,6 +47,7 @@ install-stamp: build-stamp
 	mkdir -p $(CURDIR)/debian/rrdpoller/usr/share/man/
 	mv $(CURDIR)/debian/tmp/usr/bin $(CURDIR)/debian/rrdpoller/usr/
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1 $(CURDIR)/debian/rrdpoller/usr/share/man/
+	install -m 0755 $(CURDIR)/contrib/rrd.monitor $(CURDIR)/debian/rrdpoller/usr/lib/mon/mon.d/rrd.monitor
 	
 	# As this is a architecture independent package, we are not supposed to install
 	# stuff to /usr/lib. MakeMaker creates the dirs, we delete them from the deb:
