@@ -8,8 +8,8 @@ require Exporter;
 @RRD::Query::ISA = qw(Exporter);
 @RRD::Query::EXPORT_OK = qw(isNaN);
 
-# $Id: Query.pm,v 1.13 2005/02/04 17:48:46 rs Exp $
-$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.13 $ =~ /(\d+)/g;
+# $Id: Query.pm,v 1.14 2005/02/09 18:22:37 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.14 $ =~ /(\d+)/g;
 
 =pod
 
@@ -149,7 +149,7 @@ sub fetch
             if(exists($ds{$item}))
             {
                 # substitute variables by their value
-                $item = $self->fetch($item, 1);
+                $item = $self->fetch($item, %args);
                 if(isNaN($item))
                 {
                     $item = 'NaN';
