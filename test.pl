@@ -76,7 +76,7 @@ if(RRDs::error())
 
 my $rrd = new RRD::Query($rrdfile);
 ok(defined $rrd,                                    'Test RRD::Query, creator');
-eq_array($rrd->list(), [qw(test1 test2)],           '  list() datasources');
+ok(eq_array($rrd->list(), [qw(test1 test2)]),       '  list() datasources');
 is($rrd->fetch('test1'), 1,                         '  fetch() current value');
 is($rrd->fetch('test2', offset => 100), 200,        '  fetch() past value');
 
