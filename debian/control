@@ -10,6 +10,7 @@ Package: librrd-threshold-perl
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, liberror-perl (>= 0.15-5),
  librrds-perl (>= 1.0.48-2)
+Recommends: libmath-rpn-perl
 Description: Check for thresholds exceeding values in RRD files data
  This Perl module is capable of extracting some RRD information and to
  detect if the current value of a datasource is exeeding some
