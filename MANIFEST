@@ -1,6 +1,7 @@
 Makefile.PL
 README
 INSTALL
+TODO
 SIGNATURE
 Threshold.pm
 Query.pm
