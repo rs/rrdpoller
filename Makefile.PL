@@ -4,8 +4,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile
 (
  NAME            => 'RRD::Threshold',
- DISTNAME        => 'RRD-Threshold',
- VERSION_FROM    => 'Threshold.pm',
+ DISTNAME        => 'rrdpoller',
+ VERSION_FROM    => 'rrdpoller',
  PERL_ARCHLIB    => undef,
  PREREQ_PM       =>
  {
