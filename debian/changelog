@@ -1,8 +1,9 @@
 rrdpoller (1.0.2) unstable; urgency=low
 
-  * added list command 
+  * rrdpoller, Query.pm: added list command
+  * test.pl: fix failure in some circonstances
 
- -- Olivier Poitrey <rs@mmania.com>  Mon,  6 Dec 2004 19:20:11 +0100
+ -- Olivier Poitrey <rs@mmania.com>  Mon,  6 Dec 2004 19:53:07 +0100
 
 rrdpoller (1.0.1) unstable; urgency=low
 
