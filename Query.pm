@@ -6,11 +6,19 @@ use Error qw(:try);
 use Exporter qw(import);
 @EXPORT_OK = qw(isNaN);
 
+# $Id: Query.pm,v 1.6 2004/12/06 10:20:34 rs Exp $
+$RRD::Query::VERSION = sprintf "%d.%03d", q$Revision: 1.6 $ =~ /(\d+)/g;
+
 =pod
 
 =head1 NAME
 
 RRD::Query - Perform queries on RRD file
+
+=head1 DESCRIPTION
+
+Simple wrapper around RRDs library to do some simple queries. It
+implemented more advanced error handling by using the Error module.
 
 =head1 CONSTRUCTOR
 
@@ -164,16 +172,68 @@ sub isNaN
     return !defined $value || $value eq 'NaN';
 }
 
+=pod
+
+=head1 EXCEPTION CLASSES
+
+=head2 Error::RRDs
+
+=cut
+
 package Error::RRDs;
 
 use base qw(Error::Simple);
+
+=pod
+
+=head2 Error::RRD::NoSuchDS
+
+=cut
 
 package Error::RRD::NoSuchDS;
 
 use base qw(Error::Simple);
 
+=pod
+
+=head2 Error::RRD::isNaN
+
+=cut
+
 package Error::RRD::isNaN;
 
 use base qw(Error::Simple);
+
+=pod
+
+=head1 AUTHOR
+
+Olivier Poitrey E<lt>rs@rhapsodyk.netE<gt>
+
+=head1 LICENCE
+
+RRD::Query, performs queries on RRD files.
+Copyright (C) 2004 Olivier Poitrey
+
+This library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+USA
+
+=head1 SEE ALSO
+
+L<RRDs>, L<Error>
+
+=cut
 
 1;
