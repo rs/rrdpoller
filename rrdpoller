@@ -3,8 +3,8 @@
 use strict;
 use Error qw(:try);
 
-# $Id: rrdpoller,v 1.12 2005/01/12 10:24:11 rs Exp $
-$main::VERSION = "1.2.0";
+# $Id: rrdpoller,v 1.13 2005/01/12 10:24:55 rs Exp $
+$main::VERSION = "1.2.1";
 
 =pod
 
