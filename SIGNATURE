@@ -16,23 +16,23 @@ Hash: SHA1
 
 SHA1 f0ef62df3cf5217337211cb28ece53d33e2041e1 INSTALL
 SHA1 3d0d3deaba4c6bd176bbd7cde26315903aa73208 MANIFEST
-SHA1 56df3db4683bb259611862a3deaf0590f022ddcb META.yml
-SHA1 306ae9f3411e97fffe52469dbeff201a552660f0 Makefile.PL
-SHA1 ce42501823b62ee5a5fdfddd1bcc8a7eb1c0589e Query.pm
+SHA1 e537596545919d78fa959f169f7e13c6d2794de2 META.yml
+SHA1 dd5ea559b1eaf02f68928ed6fbbb2b9f210b54ce Makefile.PL
+SHA1 73e0ba7959b7b5c610ea616f342d1f55a6df5ff9 Query.pm
 SHA1 ad3931c3bd71ef5b70d0a2dbc8617bc9e09edf01 README
 SHA1 f3b57e38719a8803ee05833c6e71a7f0a7fe5c6c TODO
 SHA1 89c461a4a103e71eaaa5aba530ec899f1ee6df66 Threshold.pm
-SHA1 288a95f482cf918a3568a436bc84c2b17a456ea4 debian/changelog
+SHA1 40fdcace27b5fa762a36d3a7912eeff24c095b79 debian/changelog
 SHA1 da18ece4f8c91efcbe0a8b604c1b3aa722d786fd debian/control
 SHA1 9dfd55f1b37cb4d3d17ef174c83c7658306da11e debian/librrd-threshold-perl.copyright
 SHA1 6906bdbb31af659bf76149ae912b5b6b08e9b5ea debian/rrdpoller.copyright
 SHA1 571fcd741c123d95c8db3849efd8d870bb44c252 debian/rules
-SHA1 1fdda6ff0c037e1046a4d87391b95cc672498bb7 rrdpoller
-SHA1 14376d9edce53e04c7fef2cce368d63513987624 test.pl
+SHA1 b58e3209f8f27d627a21b2da2a028ad9f5d5f412 rrdpoller
+SHA1 ca1f2f32d6bf302d6908cbbfa45f7fcbb1b8f72e test.pl
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBtbfag72S1jnCT0ERAqEhAJ9UwAmDezR9CFpPNomBWpvnbBu25gCeIKyk
-lKsn+33d8yhMtdIYB7Sg6to=
-=fgpv
+iD8DBQFBtlRhg72S1jnCT0ERAhJLAJ916YnNJRxYh2rHR7GP6n+Km0mLXQCfd0s8
+Gx7S3xj3he0+iZWo650eVXE=
+=zym2
 -----END PGP SIGNATURE-----

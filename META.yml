@@ -1,9 +1,9 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         rrdpoller
-version:      1.1.0
+version:      1.1.1
 version_from: rrdpoller
-installdirs:  vendor
+installdirs:  site
 requires:
     Error:                         0.15
     File::Temp:                    
