@@ -5,8 +5,8 @@ use Error qw(:try);
 use RRD::Query;
 use RRD::Threshold;
 
-# $Id: rrdpoller,v 1.9 2004/12/07 13:57:55 rs Exp $
-$main::VERSION = "1.1.0";
+# $Id: rrdpoller,v 1.10 2004/12/08 01:13:42 rs Exp $
+$main::VERSION = "1.1.1";
 
 =pod
 
