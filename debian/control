@@ -19,7 +19,8 @@ Description: Check for thresholds exceeding values in RRD files data
 
 Package: rrdpoller
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}, librrd-threshold-perl
+Depends: ${perl:Depends}, ${misc:Depends}, 
+ librrd-threshold-perl (= ${Source-Version})
 Description: Can poll RRD files and do some thresholds checks on them
  rrdpoller allows you to poll RRD files and get current value of a
  given datasource. Additionally it implement some advanced checks able
