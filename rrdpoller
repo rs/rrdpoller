@@ -159,7 +159,7 @@ while(@ARGV)
     {
         # remove "--"
         $_arg = substr($_arg, 2);
-        if(grep($_arg, @single_opts))
+        if(grep($_ eq $_arg, @single_opts))
         {
             $margs[$index]->{$_arg} = 1;
         }
