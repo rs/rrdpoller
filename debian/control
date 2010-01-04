@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Build-Depends: debhelper (>= 4.0.2)
 Build-Depends-Indep: perl (>= 5.8.0-7)
-Maintainer: Olivier Poitrey <rs@mmania.com>
+Maintainer: Olivier Poitrey <rs@rhapsodyk.net>
 Standards-Version: 3.6.1
 
 Package: librrd-threshold-perl
